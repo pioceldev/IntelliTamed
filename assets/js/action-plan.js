@@ -1,6 +1,10 @@
 /* ============================================================
    IntelliTamed — Plan d'action
-   Phases, tâches, progression (localStorage)
+   Phases, tâches, progression.
+   - Backend connecté (JWT) : les étapes sont persistées via
+     /api/action-plans + /api/action-steps ; « Générer avec
+     Gemini » crée un plan complet depuis un projet.
+   - Repli local (localStorage) si backend injoignable.
    ============================================================ */
 
 (function () {
@@ -17,10 +21,16 @@
 
   var tasks = {}; // phaseId -> [task]
   var activeTaskId = null;
+  var planId = null;   // id du plan côté serveur (null = local)
 
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
+  function isApi() {
+    return !!(window.IntelliAPI && window.IntelliAPI.getToken());
+  }
+
+  /* ---------- Stockage local (repli) ---------- */
   function loadTasks() {
     var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
     tasks = store.tasks || {};
@@ -35,6 +45,122 @@
     var out = [];
     PHASES.forEach(function (p) { (tasks[p.id] || []).forEach(function (t) { out.push(t); }); });
     return out;
+  }
+
+  /* ---------- Synchronisation serveur ---------- */
+  function loadFromServer() {
+    if (!isApi()) return Promise.resolve(false);
+    return window.IntelliAPI.listActionPlans().then(function (data) {
+      var plans = (data && data.results) || [];
+      if (!plans.length) {
+        setServerStatus("no-plan");
+        return false;
+      }
+      var plan = plans[0];
+      planId = plan.id;
+      setServerStatus("plan", plan);
+      tasks = {};
+      (plan.steps || []).forEach(function (step) {
+        var phase = PHASES.some(function (p) { return p.id === step.phase; }) ? step.phase : "phase-1";
+        if (!tasks[phase]) tasks[phase] = [];
+        tasks[phase].push({
+          id: "srv-" + step.id,
+          serverId: step.id,
+          title: step.title,
+          desc: step.description || "",
+          category: step.category || "",
+          priority: step.priority || "medium",
+          time: step.deadline || "",
+          done: step.status === "done"
+        });
+      });
+      if (window.IntelliApp) window.IntelliApp.saveStore;
+      renderPhases();
+      renderTaskDetail();
+      updateProgress();
+      return true;
+    }).catch(function () {
+      return false;
+    });
+  }
+
+  /* ---------- Bandeau d'état serveur ---------- */
+  function setServerStatus(mode, plan) {
+    var el = document.getElementById("plan-server-status");
+    if (!el) return;
+    if (mode === "no-plan") {
+      el.hidden = false;
+      el.className = "plan-server-status";
+      el.innerHTML =
+        '<div class="plan-server-info">' +
+          '<span class="chip chip-violet">Plan serveur</span>' +
+          '<p>Aucun plan d\'action enregistré. Générez un plan stratégique complet avec Gemini depuis votre projet.</p>' +
+        '</div>' +
+        '<button class="btn btn-primary btn-sm" type="button" id="gen-plan-btn">' +
+          '<span class="btn-icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>' +
+          'Générer avec Gemini' +
+        '</button>';
+      var btn = document.getElementById("gen-plan-btn");
+      if (btn) btn.addEventListener("click", generateWithGemini);
+    } else if (mode === "plan") {
+      el.hidden = false;
+      el.className = "plan-server-status";
+      el.innerHTML =
+        '<div class="plan-server-info">' +
+          '<span class="chip chip-green">Plan serveur</span>' +
+          '<p><strong>' + esc(plan.title || "Plan d'action") + '</strong> — ' +
+          (plan.step_count || 0) + ' étapes · progression ' + (plan.progress || 0) + '%</p>' +
+        '</div>' +
+        '<button class="btn btn-secondary btn-sm" type="button" id="gen-plan-btn">' +
+          '<span class="btn-icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>' +
+          'Régénérer avec Gemini' +
+        '</button>';
+      var btn2 = document.getElementById("gen-plan-btn");
+      if (btn2) btn2.addEventListener("click", generateWithGemini);
+    } else {
+      el.hidden = true;
+    }
+  }
+
+  function generateWithGemini() {
+    var btn = document.getElementById("gen-plan-btn");
+    if (btn) { btn.disabled = true; btn.classList.add("is-loading"); }
+    window.IntelliAPI.listProjects().then(function (data) {
+      var projects = (data && data.results) || [];
+      if (!projects.length) {
+        if (window.IntelliApp) window.IntelliApp.showToast("Créez d'abord un projet pour générer un plan.", "error");
+        if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); }
+        return;
+      }
+      return window.IntelliAPI.generateActionPlan(projects[0].id).then(function (plan) {
+        planId = plan.id;
+        tasks = {};
+        (plan.steps || []).forEach(function (step) {
+          var phase = PHASES.some(function (p) { return p.id === step.phase; }) ? step.phase : "phase-1";
+          if (!tasks[phase]) tasks[phase] = [];
+          tasks[phase].push({
+            id: "srv-" + step.id,
+            serverId: step.id,
+            title: step.title,
+            desc: step.description || "",
+            category: step.category || "",
+            priority: step.priority || "medium",
+            time: "",
+            done: step.status === "done"
+          });
+        });
+        persistTasks();
+        setServerStatus("plan", plan);
+        renderPhases();
+        renderTaskDetail();
+        updateProgress();
+        if (window.IntelliApp) window.IntelliApp.showToast("Plan stratégique généré par Gemini 🚀", "success");
+      });
+    }).catch(function (err) {
+      if (window.IntelliApp) window.IntelliApp.showToast((err && err.message) || "Génération impossible.", "error");
+    }).then(function () {
+      if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); }
+    });
   }
 
   /* ---------- Rendu ---------- */
@@ -55,7 +181,7 @@
 
       var rows = list.length ? list.map(function (t) {
         return taskRowHTML(phase.id, t);
-      }).join("") : '<p class="task-detail-empty" style="padding:16px 0;">Aucune étape ne correspond à votre recherche.</p>';
+      }).join("") : '<p class="task-detail-empty" style="padding:16px 0;">Aucune étape dans cette phase.</p>';
 
       return '<section class="card phase-card">' +
         '<div class="card-header">' +
@@ -166,7 +292,6 @@
     var remaining = all.length - done;
     var pct = all.length ? Math.round((done / all.length) * 100) : 0;
 
-    var ring = document.querySelector("[data-chart][data-plan-ring]");
     var doneEl = $("#plan-done-count");
     var remainingEl = $("#plan-remaining-count");
 
@@ -197,14 +322,57 @@
     }
   }
 
+  /* ---------- Sync serveur des mutations ---------- */
+  function syncStepToggle(task, done) {
+    if (planId && task.serverId && window.IntelliAPI) {
+      window.IntelliAPI.updateActionStep(task.serverId, { status: done ? "done" : "todo" })
+        .catch(function () { /* silencieux : la prochaine synchro repartira du serveur */ });
+    }
+  }
+  function syncStepDelete(task) {
+    if (task.serverId && window.IntelliAPI) {
+      window.IntelliAPI.deleteActionStep(task.serverId).catch(function () { /* noop */ });
+    }
+  }
+  function syncStepCreate(task, phaseId) {
+    if (planId && window.IntelliAPI) {
+      window.IntelliAPI.addActionStep(planId, {
+        title: task.title,
+        description: task.desc || "",
+        category: task.category || "",
+        priority: task.priority || "medium",
+        phase: phaseId
+      }).then(function (step) {
+        if (step && step.id) task.serverId = step.id;
+      }).catch(function () { /* noop */ });
+    }
+  }
+
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     loadTasks();
-    renderPhases();
-    renderTaskDetail();
-    updateProgress();
 
-    $("#plan-search").addEventListener("input", renderPhases);
+    // Si connecté : on tente de charger le plan serveur (sinon repli local)
+    if (isApi()) {
+      loadFromServer().then(function (loaded) {
+        if (!loaded) {
+          renderPhases();
+          renderTaskDetail();
+          updateProgress();
+        }
+      });
+    } else {
+      renderPhases();
+      renderTaskDetail();
+      updateProgress();
+    }
+
+    var search = $("#plan-search");
+    if (search) search.addEventListener("input", renderPhases);
+
+    // Bouton « Générer avec Gemini » de la barre d'outils
+    var toolbarBtn = document.getElementById("toolbar-gen-btn");
+    if (toolbarBtn) toolbarBtn.addEventListener("click", generateWithGemini);
 
     // Clic sur une tâche : sélectionner + détail
     document.addEventListener("click", function (e) {
@@ -223,7 +391,9 @@
         var id = delBtn.getAttribute("data-del-task");
         var phase = phaseOfTask(id);
         if (phase && tasks[phase]) {
+          var removed = tasks[phase].filter(function (t) { return t.id === id; })[0];
           tasks[phase] = tasks[phase].filter(function (t) { return t.id !== id; });
+          if (removed) syncStepDelete(removed);
           if (activeTaskId === id) activeTaskId = null;
           persistTasks();
           renderPhases();
@@ -240,6 +410,7 @@
         var t = findTask(markBtn.getAttribute("data-mark-done"));
         if (t) {
           t.done = !t.done;
+          syncStepToggle(t, t.done);
           persistTasks();
           renderPhases();
           renderTaskDetail();
@@ -260,6 +431,7 @@
       var t = findTask(id);
       if (t) {
         t.done = cb.checked;
+        syncStepToggle(t, t.done);
         persistTasks();
         renderPhases();
         renderTaskDetail();
@@ -268,40 +440,44 @@
     });
 
     // Ajout d'une étape
-    $("#task-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var title = $("#t-title").value.trim();
-      var errEl = document.querySelector("[data-error-for='t-title']");
-      if (!title) {
-        $("#t-title").classList.add("is-invalid");
-        if (errEl) { errEl.textContent = "Veuillez saisir un titre."; errEl.classList.add("is-visible"); }
-        return;
-      }
-      $("#t-title").classList.remove("is-invalid");
-      if (errEl) { errEl.textContent = ""; errEl.classList.remove("is-visible"); }
+    var taskForm = $("#task-form");
+    if (taskForm) {
+      taskForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var title = $("#t-title").value.trim();
+        var errEl = document.querySelector("[data-error-for='t-title']");
+        if (!title) {
+          $("#t-title").classList.add("is-invalid");
+          if (errEl) { errEl.textContent = "Veuillez saisir un titre."; errEl.classList.add("is-visible"); }
+          return;
+        }
+        $("#t-title").classList.remove("is-invalid");
+        if (errEl) { errEl.textContent = ""; errEl.classList.remove("is-visible"); }
 
-      var phaseId = $("#t-phase").value;
-      if (!tasks[phaseId]) tasks[phaseId] = [];
-      var newTask = {
-        id: "t" + Date.now(),
-        title: title,
-        desc: $("#t-desc").value.trim(),
-        category: $("#t-category").value,
-        priority: $("#t-priority").value,
-        time: $("#t-time").value.trim() || "2h",
-        done: false
-      };
-      tasks[phaseId].push(newTask);
-      persistTasks();
-      renderPhases();
-      updateProgress();
-      if (window.IntelliApp) {
-        window.IntelliApp.closeModal(document.getElementById("task-modal"));
-        window.IntelliApp.showToast("Étape ajoutée au plan.", "success");
-      }
-      $("#t-title").value = "";
-      $("#t-desc").value = "";
-      $("#t-time").value = "";
-    });
+        var phaseId = $("#t-phase").value;
+        if (!tasks[phaseId]) tasks[phaseId] = [];
+        var newTask = {
+          id: "t" + Date.now(),
+          title: title,
+          desc: $("#t-desc").value.trim(),
+          category: $("#t-category").value,
+          priority: $("#t-priority").value,
+          time: $("#t-time").value.trim() || "2h",
+          done: false
+        };
+        tasks[phaseId].push(newTask);
+        syncStepCreate(newTask, phaseId);
+        persistTasks();
+        renderPhases();
+        updateProgress();
+        if (window.IntelliApp) {
+          window.IntelliApp.closeModal(document.getElementById("task-modal"));
+          window.IntelliApp.showToast("Étape ajoutée au plan.", "success");
+        }
+        $("#t-title").value = "";
+        $("#t-desc").value = "";
+        $("#t-time").value = "";
+      });
+    }
   });
 })();

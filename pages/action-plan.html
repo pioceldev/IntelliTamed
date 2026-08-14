@@ -53,14 +53,17 @@
             </span>
             Ajouter une étape
           </button>
-          <button class="btn btn-primary" type="button" data-toast="Nouvelle recommandation IA générée pour votre plan.">
+          <button class="btn btn-primary" type="button" id="toolbar-gen-btn">
             <span class="btn-icon-inline">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
             </span>
-            Recommandations IA
+            Générer avec Gemini
           </button>
         </div>
       </div>
+
+      <!-- Bandeau d'état serveur (plan connecté / génération Gemini) -->
+      <div id="plan-server-status" hidden></div>
 
       <!-- Contenu -->
       <div class="plan-layout">
@@ -93,7 +96,7 @@
               </div>
             </div>
             <div class="card-body docs-list">
-              <a class="doc-item" href="#" data-toast="Documentation IA — démonstration frontend.">
+              <a class="doc-item" href="#" data-toast="Documentation IA — généré par l'IA à la demande.">
                 <span class="doc-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 </span>
@@ -102,7 +105,7 @@
                   <span>Guide des bonnes pratiques LLM</span>
                 </div>
               </a>
-              <a class="doc-item" href="#" data-toast="Analyse Marché — démonstration frontend.">
+              <a class="doc-item" href="#" data-toast="Analyse Marché — généré par l'IA à la demande.">
                 <span class="doc-icon violet">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
                 </span>
@@ -122,7 +125,7 @@
             <h3>Prochain Milestone</h3>
             <p id="milestone-text">Terminez encore <strong>3 tâches</strong> pour débloquer l'analyse de marché avancée.</p>
             <div class="progress" style="margin:12px 0;"><div class="progress-bar" id="milestone-bar" style="width:42%"></div></div>
-            <button class="btn btn-outline btn-sm btn-block" type="button" data-toast="Milestone débloqué au prochain jalon — démonstration frontend.">Découvrir le milestone</button>
+            <button class="btn btn-outline btn-sm btn-block" type="button" data-toast="Milestone débloqué au prochain jalon — généré par l'IA à la demande.">Découvrir le milestone</button>
           </section>
         </aside>
       </div>

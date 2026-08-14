@@ -516,3 +516,25 @@
     opacity: 1;
   }
 }
+
+/* ---------- Bandeau d'état serveur / génération Gemini ---------- */
+.plan-server-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: linear-gradient(120deg, rgba(37, 99, 235, 0.06), rgba(124, 58, 237, 0.06));
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.plan-server-status .plan-server-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.plan-server-status p { margin: 0; font-size: 13.5px; color: #64748B; }
+.plan-server-status p strong { color: #111827; }
+.plan-server-status .btn { white-space: nowrap; }
+@media (max-width: 640px) {
+  .plan-server-status { padding: 12px 14px; }
+  .plan-server-status .btn { width: 100%; }
+}

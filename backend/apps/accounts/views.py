@@ -1,4 +1,8 @@
 """Vues des comptes : inscription, profil, onboarding, stats admin."""
+from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.utils import timezone
 from django.http import HttpResponseRedirect
@@ -102,6 +106,142 @@ class SocialLoginView(APIView):
             dest = f"{FRONTEND_BASE}/pages/login.html?oauth_error={quote(str(exc))}"
             return HttpResponseRedirect(dest)
         return HttpResponseRedirect(url)
+
+
+class PasswordResetView(APIView):
+    """POST /api/auth/password-reset — demande de réinitialisation.
+
+    Sans serveur d'email configuré, le token est renvoyé dans la réponse
+    (uniquement quand DEBUG=True) pour permettre le flux de démo complet.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    throttle_scope = "login"
+
+    def post(self, request):
+        email = (request.data.get("email") or "").strip().lower()
+        if not email:
+            return Response(
+                {"email": ["Adresse e-mail obligatoire."]}, status=status.HTTP_400_BAD_REQUEST
+            )
+        user = User.objects.filter(email=email).first()
+        # Message identique que le compte existe ou non (pas de fuite d'information)
+        data = {
+            "message": "Si un compte existe avec cette adresse, un lien de réinitialisation a été envoyé."
+        }
+        if user:
+            token = PasswordResetTokenGenerator().make_token(user)
+            # En dev (DEBUG), on expose le token pour finaliser le flux sans email
+            if settings.DEBUG:
+                data["dev_token"] = token
+                data["email"] = user.email
+        return Response(data)
+
+
+class PasswordResetConfirmView(APIView):
+    """POST /api/auth/password-reset/confirm — définit un nouveau mot de passe."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = (request.data.get("email") or "").strip().lower()
+        token = request.data.get("token") or ""
+        new_password = request.data.get("new_password") or ""
+        user = User.objects.filter(email=email).first()
+        if not user or not token or not PasswordResetTokenGenerator().check_token(user, token):
+            return Response(
+                {"error": "Lien de réinitialisation invalide ou expiré."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            validate_password(new_password, user)
+        except ValidationError as exc:
+            return Response({"new_password": list(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        return Response({"message": "Mot de passe réinitialisé avec succès."})
+
+
+class AdminUsersView(APIView):
+    """GET /api/admin/users — liste des utilisateurs (staff uniquement)."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        users = User.objects.annotate(
+            projects_count=Count("projects", distinct=True),
+            conversations_count=Count("conversations", distinct=True),
+        ).order_by("-date_joined")[:200]
+        data = [
+            {
+                "id": u.id,
+                "email": u.email,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+                "role": u.role,
+                "is_active": u.is_active,
+                "is_staff": u.is_staff,
+                "projects_count": u.projects_count,
+                "conversations_count": u.conversations_count,
+                "date_joined": u.date_joined.isoformat(),
+                "last_login": u.last_login.isoformat() if u.last_login else None,
+            }
+            for u in users
+        ]
+        return Response({"results": data, "count": len(data)})
+
+
+class AdminProjectsView(APIView):
+    """GET /api/admin/projects — liste des projets (staff uniquement)."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        projects = Project.objects.select_related("owner").order_by("-created_at")[:200]
+        data = [
+            {
+                "id": p.id,
+                "name": p.name,
+                "owner_email": p.owner.email,
+                "status": p.status,
+                "progress": p.progress,
+                "category": p.category,
+                "created_at": p.created_at.isoformat(),
+            }
+            for p in projects
+        ]
+        return Response({"results": data, "count": len(data)})
+
+
+class AdminOpportunitiesView(APIView):
+    """GET/POST /api/admin/opportunities — gestion des opportunités (staff)."""
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        opps = Opportunity.objects.all().order_by("-created_at")[:200]
+        data = [
+            {
+                "id": o.id,
+                "title": o.title,
+                "organization": o.organization,
+                "category": o.category,
+                "location": o.location,
+                "remote": o.remote,
+                "deadline": o.deadline.isoformat() if o.deadline else None,
+                "status": o.status,
+            }
+            for o in opps
+        ]
+        return Response({"results": data, "count": len(data)})
+
+    def post(self, request):
+        from .serializers import AdminOpportunitySerializer
+
+        serializer = AdminOpportunitySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        opp = serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AdminStatsView(APIView):

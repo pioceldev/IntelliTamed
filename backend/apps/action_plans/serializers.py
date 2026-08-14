@@ -9,7 +9,7 @@ class ActionStepSerializer(serializers.ModelSerializer):
         model = ActionStep
         fields = (
             "id", "plan", "title", "description", "category",
-            "priority", "status", "deadline", "order", "created_at",
+            "priority", "status", "phase", "deadline", "order", "created_at",
         )
         read_only_fields = ("id", "plan", "created_at")
 

@@ -165,7 +165,17 @@
             '<input type="search" placeholder="Rechercher..." aria-label="Rechercher" autocomplete="off">' +
           "</label>" +
           actions +
-          '<button class="btn-icon" type="button" data-toast="Nouvelle notification : votre analyse EcoCharge est prête." aria-label="Notifications">' + icon("bell") + "</button>" +
+          '<div class="notif-menu" data-notif-menu>' +
+            '<button class="btn-icon notif-trigger" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">' + icon("bell") +
+              '<span class="notif-badge" hidden>0</span>' +
+            "</button>" +
+            '<div class="notif-dropdown" hidden>' +
+              '<div class="notif-head"><strong>Notifications</strong>' +
+                '<button class="notif-read-all" type="button">Tout marquer lu</button>' +
+              '</div>' +
+              '<div class="notif-list"></div>' +
+            '</div>' +
+          '</div>' +
           '<div class="user-menu" data-user-menu>' +
             '<button class="user-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
               '<span class="avatar">' + esc(initials) + '</span><span class="user-menu-name">' + esc(userName) + "</span>" + icon("chevronDown", "user-menu-chevron") +

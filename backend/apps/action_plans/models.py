@@ -58,8 +58,17 @@ class ActionStep(models.Model):
         DOING = "doing", "En cours"
         DONE = "done", "Terminée"
 
+    class Phase(models.TextChoices):
+        PHASE_1 = "phase-1", "Validation du concept"
+        PHASE_2 = "phase-2", "Architecture technique"
+        PHASE_3 = "phase-3", "Développement & test"
+        PHASE_4 = "phase-4", "Lancement"
+
     plan = models.ForeignKey(
         ActionPlan, on_delete=models.CASCADE, related_name="steps"
+    )
+    phase = models.CharField(
+        "Phase", max_length=10, choices=Phase.choices, default=Phase.PHASE_1
     )
     title = models.CharField("Titre", max_length=200)
     description = models.TextField("Description", blank=True)

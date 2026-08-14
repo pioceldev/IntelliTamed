@@ -112,6 +112,12 @@
     saveOnboarding: function (payload) {
       return this.request("auth/onboarding", { method: "POST", body: payload });
     },
+    requestPasswordReset: function (email) {
+      return this.request("auth/password-reset", { method: "POST", body: { email: email } });
+    },
+    confirmPasswordReset: function (payload) {
+      return this.request("auth/password-reset/confirm", { method: "POST", body: payload });
+    },
 
     /* ---------- Assistant ---------- */
     sendMessage: function (message, conversationId, title) {
@@ -152,16 +158,71 @@
       return this.request("projects/" + id + "/analyze/", { method: "POST", timeout: 120000 });
     },
 
-    /* ---------- Opportunités / divers ---------- */
+    /* ---------- Opportunités / watchlist ---------- */
     listOpportunities: function (params) {
       var qs = params ? "?" + new URLSearchParams(params).toString() : "";
       return this.safeRequest("opportunities/" + qs);
     },
+    saveOpportunity: function (id) {
+      return this.request("opportunities/" + id + "/save/", { method: "POST" });
+    },
+    unsaveOpportunity: function (id) {
+      return this.request("opportunities/" + id + "/save/", { method: "DELETE" });
+    },
+    listWatchlist: function () {
+      return this.safeRequest("watchlist/");
+    },
+
+    /* ---------- Plans d'action ---------- */
+    listActionPlans: function () {
+      return this.safeRequest("action-plans/");
+    },
+    getActionPlan: function (id) {
+      return this.safeRequest("action-plans/" + id + "/");
+    },
+    generateActionPlan: function (projectId) {
+      return this.request("action-plans/generate/", {
+        method: "POST",
+        body: { project_id: projectId },
+        timeout: 120000
+      });
+    },
+    addActionStep: function (planId, step) {
+      return this.request("action-plans/" + planId + "/steps/", { method: "POST", body: step });
+    },
+    updateActionStep: function (id, step) {
+      return this.request("action-steps/" + id + "/", { method: "PATCH", body: step });
+    },
+    deleteActionStep: function (id) {
+      return this.request("action-steps/" + id + "/", { method: "DELETE" });
+    },
+
+    /* ---------- Notifications ---------- */
     listNotifications: function () {
       return this.safeRequest("notifications/");
     },
     markNotificationRead: function (id) {
       return this.request("notifications/" + id + "/read/", { method: "POST" });
+    },
+    markAllNotificationsRead: function () {
+      return this.request("notifications/read_all/", { method: "POST" });
+    },
+    unreadNotificationsCount: function () {
+      return this.safeRequest("notifications/unread_count/");
+    },
+
+    /* ---------- Administration ---------- */
+    adminStats: function () {
+      return this.safeRequest("auth/admin/stats");
+    },
+    adminUsers: function () {
+      return this.safeRequest("auth/admin/users");
+    },
+    adminProjects: function () {
+      return this.safeRequest("auth/admin/projects");
+    },
+    adminCreateOpportunity: function (payload) {
+      return this.request("auth/admin/opportunities", { method: "POST", body: payload });
     }
   };
 

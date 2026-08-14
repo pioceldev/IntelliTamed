@@ -45,6 +45,12 @@
     };
     window.IntelliAPI.listOpportunities().then(function (data) {
       if (!data || !data.results || !data.results.length) return;
+      // Pré-remplit la watchlist depuis le champ `saved` renvoyé par l'API
+      data.results.forEach(function (o) {
+        if (o.saved && watchlist.indexOf("opp-api-" + o.id) === -1) watchlist.push("opp-api-" + o.id);
+      });
+      saveWatchlist();
+      updateWatchCount();
       allOpps = data.results.map(function (o) {
         return {
           id: "opp-api-" + o.id,
@@ -64,6 +70,23 @@
       if (loadMore) loadMore.disabled = true;
       renderCards();
     }).catch(function () { /* backend injoignable → données locales */ });
+  }
+
+  // Charge la watchlist du backend (si connecté) et fusionne avec le local
+  function syncWatchlistFromApi() {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+    window.IntelliAPI.listWatchlist().then(function (data) {
+      if (!data || !data.results) return;
+      var saved = data.results.map(function (w) {
+        return "opp-api-" + ((w.opportunity && w.opportunity.id) || w.opportunity_id);
+      }).filter(function (id) { return id && id.indexOf("opp-api-") === 0 && id.length > 8; });
+      // fusion sans doublons
+      saved.forEach(function (id) {
+        if (watchlist.indexOf(id) === -1) watchlist.push(id);
+      });
+      saveWatchlist();
+      updateWatchCount();
+    }).catch(function () { /* backend injoignable */ });
   }
 
   function filteredList() {
@@ -150,6 +173,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     renderCards();
     syncOpportunitiesFromApi();
+    syncWatchlistFromApi();
 
     // Onglets
     document.querySelectorAll(".market-tab").forEach(function (tab) {
@@ -168,7 +192,7 @@
     $("#market-search").addEventListener("input", renderCards);
     $("#market-sort").addEventListener("change", renderCards);
 
-    // Watchlist (délégation)
+    // Watchlist (délégation) — synchronisée avec l'API si connecté
     document.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-watch]");
       if (!btn) return;
@@ -182,6 +206,13 @@
         if (window.IntelliApp) window.IntelliApp.showToast("Retiré de votre watchlist.");
       }
       saveWatchlist();
+      // Synchronisation serveur
+      if (window.IntelliAPI && window.IntelliAPI.getToken() && id.indexOf("opp-api-") === 0) {
+        var realId = id.slice("opp-api-".length);
+        var wasSaved = idx === -1;
+        if (wasSaved) window.IntelliAPI.saveOpportunity(realId).catch(function () { /* noop */ });
+        else window.IntelliAPI.unsaveOpportunity(realId).catch(function () { /* noop */ });
+      }
       renderCards();
     });
 

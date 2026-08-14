@@ -12,6 +12,12 @@
 
   var I = global.IntelliTamed;
 
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     // 1. Injection des composants partagés
     if (I) I.injectAll();
@@ -45,6 +51,9 @@
       if (window.IntelliAPI) window.IntelliAPI.logout();
       window.location.href = "login.html";
     });
+
+    // 2ter. Notifications (cloche topbar → API)
+    initNotifications();
 
     // 3. Menu utilisateur
     document.querySelectorAll("[data-user-menu]").forEach(function (menu) {
@@ -131,6 +140,83 @@
     });
   });
 
+  /* ---------- Notifications ---------- */
+  function initNotifications() {
+    var menu = document.querySelector("[data-notif-menu]");
+    if (!menu) return;
+    var trigger = menu.querySelector(".notif-trigger");
+    var dropdown = menu.querySelector(".notif-dropdown");
+    var list = menu.querySelector(".notif-list");
+    var badge = menu.querySelector(".notif-badge");
+
+    function render(items) {
+      if (!list) return;
+      var unread = (items || []).filter(function (n) { return !n.read; }).length;
+      if (badge) {
+        badge.hidden = unread === 0;
+        badge.textContent = unread > 9 ? "9+" : String(unread);
+      }
+      if (!items || !items.length) {
+        list.innerHTML = '<p class="notif-empty">Aucune notification.</p>';
+        return;
+      }
+      list.innerHTML = (items || []).map(function (n) {
+        return '<div class="notif-item' + (n.read ? " is-read" : "") + '" data-notif-id="' + n.id + '" role="button">' +
+          '<span class="notif-dot"></span>' +
+          '<div><strong>' + esc(n.title) + '</strong><p>' + esc(n.content || "") + '</p>' +
+          '<small>' + esc((n.created_at || "").slice(0, 10)) + '</small></div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function load() {
+      if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+      window.IntelliAPI.listNotifications().then(function (data) {
+        render((data && data.results) || []);
+      });
+    }
+
+    trigger.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var isOpen = !dropdown.hidden;
+      dropdown.hidden = isOpen;
+      trigger.setAttribute("aria-expanded", String(!isOpen));
+      if (!isOpen) load();
+    });
+    document.addEventListener("click", function (e) {
+      if (!menu.contains(e.target)) {
+        dropdown.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Marquer une notification comme lue
+    list.addEventListener("click", function (e) {
+      var item = e.target.closest("[data-notif-id]");
+      if (!item) return;
+      var id = item.getAttribute("data-notif-id");
+      if (window.IntelliAPI) {
+        window.IntelliAPI.markNotificationRead(id).then(function () {
+          item.classList.add("is-read");
+          load();
+        }).catch(function () { /* noop */ });
+      }
+    });
+
+    // Tout marquer lu
+    var readAll = menu.querySelector(".notif-read-all");
+    if (readAll) {
+      readAll.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (window.IntelliAPI) {
+          window.IntelliAPI.markAllNotificationsRead().then(function () { load(); });
+        }
+      });
+    }
+
+    load();
+  }
+
   /* ---------- Toasts ---------- */
   function showToast(msg, type) {
     type = type || "info";
@@ -147,8 +233,12 @@
     };
     var toast = document.createElement("div");
     toast.className = "toast toast-" + type;
+    // I (IntelliTamed) peut être absent sur les pages auth (login/signup) → échappement minimal
+    var safeMsg = (I && I.esc) ? I.esc(msg) : String(msg).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
     toast.innerHTML = '<span class="toast-icon">' + (icons[type] || icons.info) + "</span><span>" +
-      I.esc(msg) + "</span>";
+      safeMsg + "</span>";
     container.appendChild(toast);
     setTimeout(function () {
       toast.classList.add("is-leaving");

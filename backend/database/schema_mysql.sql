@@ -16,7 +16,7 @@ CREATE TABLE `accounts_user` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `
 CREATE TABLE `accounts_user_groups` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `user_id` bigint NOT NULL, `group_id` integer NOT NULL) ENGINE=InnoDB;
 CREATE TABLE `accounts_user_user_permissions` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `user_id` bigint NOT NULL, `permission_id` integer NOT NULL) ENGINE=InnoDB;
 CREATE TABLE `action_plans_actionplan` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `title` varchar(200) NOT NULL, `description` longtext NOT NULL, `status` varchar(20) NOT NULL, `created_at` datetime(6) NOT NULL, `updated_at` datetime(6) NOT NULL, `project_id` bigint NULL, `user_id` bigint NOT NULL) ENGINE=InnoDB;
-CREATE TABLE `action_plans_actionstep` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `title` varchar(200) NOT NULL, `description` longtext NOT NULL, `category` varchar(50) NOT NULL, `priority` varchar(10) NOT NULL, `status` varchar(10) NOT NULL, `deadline` date NULL, `order` integer UNSIGNED NOT NULL CHECK (`order` >= 0), `created_at` datetime(6) NOT NULL, `plan_id` bigint NOT NULL) ENGINE=InnoDB;
+CREATE TABLE `action_plans_actionstep` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `title` varchar(200) NOT NULL, `description` longtext NOT NULL, `category` varchar(50) NOT NULL, `priority` varchar(10) NOT NULL, `status` varchar(10) NOT NULL, `deadline` date NULL, `order` integer UNSIGNED NOT NULL CHECK (`order` >= 0), `phase` varchar(10) NOT NULL, `created_at` datetime(6) NOT NULL, `plan_id` bigint NOT NULL) ENGINE=InnoDB;
 CREATE TABLE `django_admin_log` (`id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY, `action_time` datetime(6) NOT NULL, `object_id` longtext NULL, `object_repr` varchar(200) NOT NULL, `action_flag` smallint UNSIGNED NOT NULL CHECK (`action_flag` >= 0), `change_message` longtext NOT NULL, `content_type_id` integer NULL, `user_id` bigint NOT NULL) ENGINE=InnoDB;
 CREATE TABLE `ai_airequest` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `request_type` varchar(20) NOT NULL, `model_used` varchar(100) NOT NULL, `status` varchar(10) NOT NULL, `usage_info` json NOT NULL, `error` longtext NOT NULL, `created_at` datetime(6) NOT NULL, `user_id` bigint NOT NULL) ENGINE=InnoDB;
 CREATE TABLE `ai_conversation` (`id` bigint AUTO_INCREMENT NOT NULL PRIMARY KEY, `title` varchar(200) NOT NULL, `created_at` datetime(6) NOT NULL, `updated_at` datetime(6) NOT NULL, `user_id` bigint NOT NULL) ENGINE=InnoDB;
@@ -98,6 +98,7 @@ INSERT INTO `django_migrations` (`app`, `name`, `applied`) VALUES
     ('projects', '0001_initial', NOW()),
     ('ai', '0001_initial', NOW()),
     ('action_plans', '0001_initial', NOW()),
+    ('action_plans', '0002_actionstep_phase', NOW()),
     ('opportunities', '0001_initial', NOW()),
     ('notifications', '0001_initial', NOW()),
     ('subscriptions', '0001_initial', NOW());

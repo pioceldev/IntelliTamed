@@ -280,25 +280,99 @@
     window.location.href = "/api/auth/social/" + provider + "/login";
   });
 
-  /* ---------- Mot de passe oublié ---------- */
+  /* ---------- Mot de passe oublié ----------
+     Étape 1 : POST /api/auth/password-reset (email)
+     Étape 2 : si un code est fourni (mode dev), on passe à la saisie
+              du nouveau mot de passe → POST /password-reset/confirm. */
+  var forgotEmail = document.getElementById("forgot-email");
   var forgotSubmit = document.getElementById("forgot-submit");
+  var forgotStep2 = document.getElementById("forgot-step-2");
+  var forgotState = {}; // { email }
+
+  function showForgotError(inputId, msg) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    var errEl = document.querySelector("[data-error-for='" + inputId + "']");
+    if (errEl) { errEl.textContent = msg; errEl.classList.add("is-visible"); input.classList.add("is-invalid"); }
+  }
+  function clearForgotError(inputId) {
+    var errEl = document.querySelector("[data-error-for='" + inputId + "']");
+    if (errEl) { errEl.textContent = ""; errEl.classList.remove("is-visible"); }
+    var input = document.getElementById(inputId);
+    if (input) input.classList.remove("is-invalid");
+  }
+
   if (forgotSubmit) {
     forgotSubmit.addEventListener("click", function () {
-      var email = document.getElementById("forgot-email");
-      var ok = setError(email, validators.email(email.value) ? "" : "Veuillez saisir une adresse e-mail valide.");
+      // --- Étape 2 : réinitialisation avec code ---
+      if (forgotStep2 && !forgotStep2.hidden) {
+        var token = document.getElementById("forgot-token").value.trim();
+        var newPass = document.getElementById("forgot-new-password").value;
+        var confirmPass = document.getElementById("forgot-confirm-password").value;
+        clearForgotError("forgot-token"); clearForgotError("forgot-new-password"); clearForgotError("forgot-confirm-password");
+        if (!token) { showForgotError("forgot-token", "Saisissez le code de réinitialisation."); return; }
+        if (!validators.password(newPass)) { showForgotError("forgot-new-password", "8 caractères min., un chiffre et un symbole."); return; }
+        if (newPass !== confirmPass) { showForgotError("forgot-confirm-password", "Les mots de passe ne correspondent pas."); return; }
+
+        forgotSubmit.classList.add("is-loading");
+        forgotSubmit.disabled = true;
+        if (!window.IntelliAPI) {
+          forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+          if (window.IntelliApp) window.IntelliApp.showToast("Backend injoignable : réinitialisation impossible.", "error");
+          return;
+        }
+        window.IntelliAPI.confirmPasswordReset({
+          email: forgotState.email,
+          token: token,
+          new_password: newPass
+        }).then(function () {
+          forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+          if (window.IntelliApp) {
+            window.IntelliApp.closeModal(document.getElementById("forgot-modal"));
+            window.IntelliApp.showToast("Mot de passe réinitialisé. Connectez-vous.", "success");
+          }
+        }).catch(function (err) {
+          forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+          var msg = (err && err.data && (err.data.error || (err.data.new_password || []).join(" "))) || (err && err.message) || "Réinitialisation impossible.";
+          showForgotError("forgot-token", msg);
+        });
+        return;
+      }
+
+      // --- Étape 1 : demande d'envoi ---
+      if (!forgotEmail) return;
+      clearForgotError("forgot-email");
+      var ok = setError(forgotEmail, validators.email(forgotEmail.value) ? "" : "Veuillez saisir une adresse e-mail valide.");
       if (!ok) return;
 
       forgotSubmit.classList.add("is-loading");
       forgotSubmit.disabled = true;
-      setTimeout(function () {
-        forgotSubmit.classList.remove("is-loading");
-        forgotSubmit.disabled = false;
-        var modal = document.getElementById("forgot-modal");
-        if (window.IntelliApp) {
-          window.IntelliApp.closeModal(modal);
-          window.IntelliApp.showToast("Lien de réinitialisation envoyé à " + esc(email.value.trim()) + ".", "success");
-        }
-      }, 900);
+      if (!window.IntelliAPI) {
+        forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+        if (window.IntelliApp) window.IntelliApp.showToast("Backend injoignable : réinitialisation impossible.", "error");
+        return;
+      }
+      window.IntelliAPI.requestPasswordReset(forgotEmail.value.trim())
+        .then(function (data) {
+          forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+          forgotState.email = forgotEmail.value.trim();
+          // Mode dev : l'API renvoie un code → étape 2 directement
+          if (data && data.dev_token && forgotStep2) {
+            forgotStep2.hidden = false;
+            document.getElementById("forgot-step-1").hidden = true;
+            document.getElementById("forgot-token").value = data.dev_token;
+            forgotSubmit.textContent = "Réinitialiser le mot de passe";
+            if (window.IntelliApp) window.IntelliApp.showToast("Code de réinitialisation reçu (mode développement).", "info");
+          } else if (window.IntelliApp) {
+            window.IntelliApp.closeModal(document.getElementById("forgot-modal"));
+            window.IntelliApp.showToast("Si un compte existe, un lien de réinitialisation a été envoyé.", "success");
+          }
+        })
+        .catch(function (err) {
+          forgotSubmit.classList.remove("is-loading"); forgotSubmit.disabled = false;
+          var msg = (err && err.message) || "Demande impossible.";
+          showForgotError("forgot-email", msg);
+        });
     });
   }
 

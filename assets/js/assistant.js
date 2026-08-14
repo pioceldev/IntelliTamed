@@ -23,6 +23,36 @@
   var currentConversation = "new";
   var conversations = loadConversations();
 
+  // Charge l'historique serveur (conversations persistées via l'API Django)
+  function loadServerConversations() {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return Promise.resolve();
+    return window.IntelliAPI.listConversations().then(function (data) {
+      var list = (data && data.results) || [];
+      var pending = list.map(function (conv) {
+        return window.IntelliAPI.getConversation(conv.id).then(function (detail) {
+          if (!detail || !detail.messages || !detail.messages.length) return;
+          var key = "srv-" + conv.id;
+          conversations[key] = {
+            serverId: conv.id,
+            title: conv.title || "Conversation",
+            date: (conv.updated_at || conv.created_at || "").slice(0, 10),
+            messages: detail.messages.map(function (m) {
+              return {
+                role: m.role === "model" ? "ai" : "user",
+                text: m.content || "",
+                time: (m.created_at || "").slice(11, 16)
+              };
+            })
+          };
+        });
+      });
+      return Promise.all(pending).then(function () {
+        saveConversations();
+        updateHistory();
+      });
+    }).catch(function () { /* backend injoignable */ });
+  }
+
   function loadConversations() {
     try {
       var raw = localStorage.getItem(STORE_KEY);
@@ -329,6 +359,15 @@
         updateHistory();
       });
       li.appendChild(btn);
+
+      // Bouton suppression (serveur ou local)
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "history-del";
+      del.setAttribute("data-del-conv", id);
+      del.setAttribute("aria-label", "Supprimer la conversation");
+      del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      li.appendChild(del);
       historyList.appendChild(li);
     });
 
@@ -336,8 +375,28 @@
     if (count) count.textContent = String(historyList.children.length);
   }
 
+  /* ---------- Suppression de conversation ---------- */
+  function deleteConversation(id) {
+    var conv = conversations[id];
+    if (!conv) return;
+    var remove = function () {
+      delete conversations[id];
+      saveConversations();
+      if (currentConversation === id) newConversation(true);
+      else updateHistory();
+      if (window.IntelliApp) window.IntelliApp.showToast("Conversation supprimée.");
+    };
+    if (conv.serverId && window.IntelliAPI) {
+      window.IntelliAPI.deleteConversation(conv.serverId)
+        .then(remove)
+        .catch(function () { remove(); });
+    } else {
+      remove();
+    }
+  }
+
   /* ---------- Nouvelle discussion ---------- */
-  function newConversation() {
+  function newConversation(skipFocus) {
     currentConversation = "new";
     conversations[currentConversation] = { title: "", date: "Aujourd'hui", messages: [] };
     saveConversations();
@@ -345,7 +404,7 @@
     showSuggestions();
     renderMessages([]);
     updateHistory();
-    input.focus();
+    if (input && !skipFocus) input.focus();
   }
 
   /* ---------- Événements ---------- */
@@ -383,6 +442,16 @@
     var newBtn = document.getElementById("new-chat-btn");
     if (newBtn) newBtn.addEventListener("click", newConversation);
 
+    // Suppression (délégation sur l'historique)
+    if (historyList) {
+      historyList.addEventListener("click", function (e) {
+        var del = e.target.closest(".history-del");
+        if (!del) return;
+        e.stopPropagation();
+        deleteConversation(del.getAttribute("data-del-conv"));
+      });
+    }
+
     // Initialisation
     if (currentConversation === "new") {
       var stored = conversations["new"];
@@ -394,6 +463,7 @@
     }
     updateHistory();
     checkGeminiStatus();
+    loadServerConversations();
   });
 
   function autoResize() {

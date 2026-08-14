@@ -197,6 +197,71 @@ class GeminiService:
                 continue
         return {}
 
+    # ------------------------------------------------------------------
+    # Génération de plan d'action structuré
+    # ------------------------------------------------------------------
+    PLAN_PHASES = ("phase-1", "phase-2", "phase-3", "phase-4")
+    PLAN_PRIORITIES = ("high", "medium", "low")
+
+    @staticmethod
+    def generate_action_plan(project):
+        """Génère un plan d'action structuré (JSON validé) depuis un projet."""
+        prompt = (
+            "Génère un plan d'action stratégique pour ce projet entrepreneurial. "
+            "Réponds UNIQUEMENT avec un objet JSON valide (sans texte autour) au format :\n"
+            '{"title": "...", "description": "...", '
+            '"steps": [{"title": "...", "description": "...", "category": "...", '
+            '"priority": "high|medium|low", "phase": "phase-1|phase-2|phase-3|phase-4"}]}\n\n'
+            "Les 4 phases : phase-1 = Validation du concept, phase-2 = Architecture technique, "
+            "phase-3 = Développement & test, phase-4 = Lancement.\n"
+            "Règles : 4 à 8 étapes au total, réparties dans les 4 phases (au moins 1 par phase), "
+            "chaque étape actionnable et concrète en français, priorité justifiée.\n\n"
+            f"Nom : {project.name}\n"
+            f"Description : {project.description}\n"
+            f"Problème résolu : {project.problem}\n"
+            f"Solution : {project.solution}\n"
+            f"Public cible : {project.target_audience}\n"
+            f"Modèle économique : {project.business_model}\n"
+            f"Statut actuel : {project.get_status_display()}\n"
+            f"Progression : {project.progress}%\n"
+            f"Catégorie : {project.category or 'Non précisée'}"
+        )
+        raw = GeminiService.generate(prompt, max_tokens=8192)
+        parsed = GeminiService._parse_json(raw)
+        return GeminiService._validate_plan(parsed)
+
+    @staticmethod
+    def _validate_plan(data):
+        """Valide/normalise la sortie d'un plan d'action — ne fait jamais confiance à l'IA."""
+        if not isinstance(data, dict):
+            data = {}
+        title = str(data.get("title") or "Plan d'action stratégique")[:200]
+        description = str(data.get("description") or "")[:2000]
+        steps = []
+        raw_steps = data.get("steps")
+        if isinstance(raw_steps, list):
+            for item in raw_steps[:12]:
+                if not isinstance(item, dict):
+                    continue
+                phase = item.get("phase", "phase-1")
+                if phase not in GeminiService.PLAN_PHASES:
+                    phase = "phase-1"
+                priority = item.get("priority", "medium")
+                if priority not in GeminiService.PLAN_PRIORITIES:
+                    priority = "medium"
+                steps.append(
+                    {
+                        "title": str(item.get("title") or "Étape")[:200],
+                        "description": str(item.get("description") or "")[:1000],
+                        "category": str(item.get("category") or "Stratégique")[:50],
+                        "priority": priority,
+                        "phase": phase,
+                    }
+                )
+        if not steps:
+            raise ValueError("Gemini n'a pas généré d'étapes valides pour le plan.")
+        return {"title": title, "description": description, "steps": steps}
+
     @staticmethod
     def _validate_analysis(data):
         """Valide/normalise les champs — ne fait jamais confiance aveuglément à l'IA."""

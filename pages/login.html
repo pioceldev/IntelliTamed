@@ -184,11 +184,33 @@
         </button>
       </div>
       <div class="modal-body">
-        <p style="font-size:14px;color:#64748B;margin-bottom:16px;">Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" for="forgot-email">Adresse e-mail</label>
-          <input class="form-input" type="email" id="forgot-email" placeholder="nom@entreprise.com">
-          <p class="form-error" data-error-for="forgot-email"></p>
+        <!-- Étape 1 : demande d'envoi -->
+        <div id="forgot-step-1">
+          <p style="font-size:14px;color:#64748B;margin-bottom:16px;">Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="forgot-email">Adresse e-mail</label>
+            <input class="form-input" type="email" id="forgot-email" placeholder="nom@entreprise.com">
+            <p class="form-error" data-error-for="forgot-email"></p>
+          </div>
+        </div>
+        <!-- Étape 2 : saisie du nouveau mot de passe (dev : code fourni par l'API) -->
+        <div id="forgot-step-2" hidden>
+          <p style="font-size:14px;color:#64748B;margin-bottom:16px;">Saisissez le code de réinitialisation (envoyé par e-mail, affiché ici en mode développement) puis votre nouveau mot de passe.</p>
+          <div class="form-group">
+            <label class="form-label" for="forgot-token">Code de réinitialisation</label>
+            <input class="form-input" type="text" id="forgot-token" placeholder="Code reçu par e-mail">
+            <p class="form-error" data-error-for="forgot-token"></p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="forgot-new-password">Nouveau mot de passe</label>
+            <input class="form-input" type="password" id="forgot-new-password" placeholder="8 caractères min., chiffre et symbole">
+            <p class="form-error" data-error-for="forgot-new-password"></p>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="forgot-confirm-password">Confirmer le mot de passe</label>
+            <input class="form-input" type="password" id="forgot-confirm-password" placeholder="Confirmez le nouveau mot de passe">
+            <p class="form-error" data-error-for="forgot-confirm-password"></p>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

@@ -528,3 +528,36 @@
     width: 100%;
   }
 }
+
+/* ---------- Historique : suppression ---------- */
+.history-list li {
+  position: relative;
+}
+.history-del {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+  z-index: 2;
+}
+.history-list li:hover .history-del {
+  opacity: 1;
+}
+.history-del:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+.history-item {
+  padding-right: 30px;
+}
