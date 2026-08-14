@@ -21,7 +21,16 @@ logger = logging.getLogger("intellitamed.ai")
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
+# Modèles de secours (chacun a son propre quota) — utilisés automatiquement
+# quand le modèle principal est bloqué par le quota (429).
+# Testés : gemini-flash-lite-latest et gemini-3.1-flash-lite répondent
+# correctement (STOP) ; gemini-flash-latest renvoie des réponses corrompues
+# et gemini-2.5-flash n'est plus accessible en free tier (404).
+FALLBACK_MODELS = os.environ.get(
+    "GEMINI_FALLBACK_MODELS", "gemini-flash-lite-latest,gemini-3.1-flash-lite"
+).split(",")
 TIMEOUT_SECONDS = 60
+MAX_CYCLES = 2  # cycles de tentatives (chaque cycle essaie tous les modèles)
 
 SYSTEM_PROMPT = (
     "Tu es l'Assistant IntelliTamed, un expert stratégique en entrepreneuriat et venture building. "
@@ -41,6 +50,17 @@ class GeminiError(Exception):
     """Erreur d'appel à l'API Gemini."""
 
 
+def _quota_retry_delay(body):
+    """Extrait le délai (secondes) conseillé par Gemini dans le corps d'une erreur 429."""
+    match = re.search(r"retry in\s+([\d.]+)s", body, re.IGNORECASE)
+    if match:
+        try:
+            return min(float(match.group(1)) + 2, 90)  # marge + plafond de sécurité
+        except ValueError:
+            pass
+    return 5
+
+
 class GeminiService:
     """Accès à l'API Gemini (generateContent)."""
 
@@ -51,7 +71,9 @@ class GeminiService:
         if not key:
             raise GeminiError("GEMINI_API_KEY non configurée côté serveur.")
 
-        model = model or DEFAULT_MODEL
+        requested = model or DEFAULT_MODEL
+        models = [requested] + [m for m in FALLBACK_MODELS if m and m != requested]
+
         contents = [
             {
                 "role": "user" if m["role"] == "user" else "model",
@@ -70,44 +92,65 @@ class GeminiService:
                 "topP": 0.9,
             },
         }
-
-        url = f"{GEMINI_ENDPOINT.format(model=model)}?key={key}"
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
+        body_bytes = json.dumps(payload).encode("utf-8")
 
         started = time.monotonic()
-        try:
-            with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", "replace")[:400]
-            logger.error("Gemini HTTP %s : %s", exc.code, body)
-            if exc.code == 429:
-                raise GeminiError("Quota Gemini dépassé. Réessayez dans quelques instants.") from exc
-            raise GeminiError(f"Gemini a renvoyé une erreur (code {exc.code}).") from exc
-        except urllib.error.URLError as exc:
-            logger.error("Gemini réseau : %s", exc.reason)
-            raise GeminiError("Impossible de joindre le service Gemini.") from exc
+        last_quota = None
+        for cycle in range(MAX_CYCLES):
+            for candidate in models:
+                url = f"{GEMINI_ENDPOINT.format(model=candidate)}?key={key}"
+                req = urllib.request.Request(
+                    url,
+                    data=body_bytes,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:
+                        data = json.loads(resp.read().decode("utf-8"))
+                    latency = time.monotonic() - started
+                    reply = GeminiService._extract_text(data)
+                    if not reply:
+                        raise GeminiError("Gemini n'a pas généré de réponse.")
+                    if candidate != requested:
+                        logger.info("Gemini OK via modèle de secours (%s) en %.2fs", candidate, latency)
+                    else:
+                        logger.info("Gemini OK (%s) en %.2fs", candidate, latency)
+                    return reply
+                except urllib.error.HTTPError as exc:
+                    body = exc.read().decode("utf-8", "replace")[:600]
+                    if exc.code == 429:
+                        last_quota = body
+                        logger.warning(
+                            "Quota Gemini (%s) — bascule vers le modèle suivant", candidate
+                        )
+                        continue  # passe au modèle suivant : chacun a son propre quota
+                    logger.warning("Gemini HTTP %s (%s) : %s", exc.code, candidate, body)
+                    raise GeminiError(f"Gemini a renvoyé une erreur (code {exc.code}).") from exc
+                except urllib.error.URLError as exc:
+                    logger.error("Gemini réseau (%s) : %s", candidate, exc.reason)
+                    raise GeminiError("Impossible de joindre le service Gemini.") from exc
 
-        latency = time.monotonic() - started
+            # Tous les modèles bloqués : pause (délai fourni par Gemini) puis nouveau cycle
+            if last_quota and cycle < MAX_CYCLES - 1:
+                delay = _quota_retry_delay(last_quota)
+                logger.warning("Tous les modèles Gemini saturés — pause %.0fs puis cycle %d/%d", delay, cycle + 2, MAX_CYCLES)
+                time.sleep(delay)
+
+        # Tous les modèles sont bloqués par le quota
+        raise GeminiError("Quota Gemini dépassé. Réessayez dans quelques instants.")
+
+    @staticmethod
+    def _extract_text(data):
+        """Extrait le texte généré d'une réponse generateContent."""
         try:
-            reply = "".join(
+            return "".join(
                 p.get("text", "")
                 for c in data.get("candidates", [])
                 for p in (c.get("content") or {}).get("parts", [])
             )
         except (AttributeError, TypeError):
-            reply = ""
-
-        if not reply:
-            raise GeminiError("Gemini n'a pas généré de réponse.")
-
-        logger.info("Gemini OK (%s) en %.2fs", model, latency)
-        return reply
+            return ""
 
     # ------------------------------------------------------------------
     # Analyse structurée de projet

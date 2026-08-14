@@ -1,6 +1,11 @@
 /* ============================================================
    IntelliTamed — Mes Projets
-   CRUD complet côté frontend (localStorage)
+   CRUD complet connecté à l'API Django :
+     GET    /api/projects/          → liste
+     POST   /api/projects/          → création
+     PUT    /api/projects/{id}/     → modification
+     DELETE /api/projects/{id}/     → suppression
+   Aucune donnée locale : tout vient du backend.
    ============================================================ */
 
 (function () {
@@ -27,72 +32,128 @@
   ];
 
   var projects = [];
-  var editingId = null;
-  var deletingId = null;
+  var editingApiId = null;
+  var deletingApiId = null;
 
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
-  // Mapping statuts Django → statuts de l'interface
-  var STATUS_MAP = {
+  // Statut interface (tableau) → statut API (Django)
+  var UI_TO_API = {
+    planned: "preparation",
+    "in-progress": "development",
+    late: "development",
+    done: "launched"
+  };
+  // Statut API → statut interface
+  var API_TO_UI = {
     idea: "planned",
     preparation: "in-progress",
     development: "in-progress",
     launched: "done",
     growth: "done"
   };
+  // Catégorie interface (select français) ↔ catégorie API
+  var UI_CATEGORY_TO_API = {
+    "Stratégie": "Strategie",
+    "Opérations": "Operations",
+    "Technologie": "Technologie",
+    "Marketing": "Marketing",
+    "IA / Data": "IA",
+    "Finance": "Finance"
+  };
+  var API_CATEGORY_TO_UI = {
+    "Strategie": "Stratégie",
+    "Operations": "Opérations",
+    "Technologie": "Technologie",
+    "Marketing": "Marketing",
+    "IA": "IA / Data",
+    "Finance": "Finance"
+  };
+
+  function catToApi(cat) { return UI_CATEGORY_TO_API[cat] || cat; }
+  function catToUi(cat) { return API_CATEGORY_TO_UI[cat] || cat; }
+
+  function mapToUI(p) {
+    return {
+      apiId: p.id,
+      name: p.name,
+      category: catToUi(p.category || "Strategie"),
+      status: API_TO_UI[p.status] || "in-progress",
+      priority: p.progress >= 60 ? "high" : (p.progress >= 30 ? "medium" : "low"),
+      progress: p.progress || 0,
+      team: "—",
+      due: p.due_date ? p.due_date.slice(0, 10) : "À définir"
+    };
+  }
 
   function loadProjects() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : { projects: [] };
-    projects = (store.projects || []).slice();
-  }
-  function persistProjects() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-    store.projects = projects;
-    if (window.IntelliApp) window.IntelliApp.saveStore(store);
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+      window.location.href = "login.html";
+      return;
+    }
+    window.IntelliAPI.listProjects().then(function (data) {
+      projects = ((data && data.results) || []).map(mapToUI);
+      renderTable();
+      renderRoadmap();
+      updateCounters();
+    }).catch(function () {
+      projects = [];
+      renderTable();
+      renderRoadmap();
+      updateCounters();
+    });
   }
 
-  // Charge les projets depuis le backend Django si l'utilisateur est connecté
-  function syncProjectsFromApi() {
-    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
-    window.IntelliAPI.listProjects().then(function (data) {
-      if (!data || !data.results) return;
-      var remote = data.results.map(function (p) {
-        return {
-          id: "PRJ-" + String(p.id).padStart(3, "0"),
-          apiId: p.id,
-          name: p.name,
-          category: p.category || "Stratégie",
-          status: STATUS_MAP[p.status] || "in-progress",
-          priority: p.progress >= 60 ? "high" : (p.progress >= 30 ? "medium" : "low"),
-          progress: p.progress || 0,
-          team: "—",
-          due: p.due_date ? p.due_date.slice(0, 10) : "À définir"
-        };
-      });
-      if (remote.length) {
-        projects = remote;
-        persistProjects();
-        renderTable();
-        renderRoadmap();
-      }
-    }).catch(function () { /* backend injoignable → données locales */ });
+  function updateCounters() {
+    var el = document.querySelector("[data-projects-count]");
+    if (el) el.textContent = projects.length;
+    renderAiBanners();
+  }
+
+  /* ---------- Bannières IA (dynamiques depuis les données réelles) ---------- */
+  function renderAiBanners() {
+    var container = document.querySelector(".ai-banners");
+    if (!container) return;
+    if (!projects.length) {
+      container.hidden = true;
+      return;
+    }
+    container.hidden = false;
+    // Projet le plus avancé → bannière de recommandation
+    var best = projects.slice().sort(function (a, b) { return b.progress - a.progress; })[0];
+    container.innerHTML =
+      '<div class="ai-banner">' +
+        '<span class="ai-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>' +
+        '<div class="ai-banner-body">' +
+          '<p>Votre projet <strong>' + esc(best.name) + '</strong> est à <strong>' + best.progress + '%</strong> de progression. ' +
+          'Lancez une analyse IA pour identifier vos prochaines actions prioritaires.</p>' +
+          '<a class="btn btn-secondary btn-sm" href="project-analysis.html?id=' + best.apiId + '">Voir les recommandations IA</a>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ai-banner violet">' +
+        '<span class="ai-banner-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>' +
+        '<div class="ai-banner-body">' +
+          '<p>' + projects.length + ' projet' + (projects.length > 1 ? "s" : "") + ' suivi' + (projects.length > 1 ? "s" : "") + ' — retrouvez les opportunités les plus pertinentes pour votre profil.</p>' +
+          '<a class="btn btn-secondary btn-sm" href="opportunities.html">Explorer les opportunités</a>' +
+        '</div>' +
+      '</div>';
   }
 
   var CATEGORY_ICONS = {
-    "Stratégie": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
-    "Opérations": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg>',
+    "Strategie": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>',
+    "Operations": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/></svg>',
     "Technologie": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
     "Marketing": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h2l2-6 4 12 3-9 2 3h7"/></svg>',
-    "IA / Data": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+    "IA": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
     "Finance": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>'
   };
   var CATEGORY_COLORS = {
-    "Stratégie": "", "Opérations": "violet", "Technologie": "amber", "Marketing": "green", "IA / Data": "", "Finance": "violet"
+    "Strategie": "", "Operations": "violet", "Technologie": "amber", "Marketing": "green", "IA": "", "Finance": "violet"
   };
 
   function iconForCategory(cat) {
-    return CATEGORY_ICONS[cat] || CATEGORY_ICONS["Stratégie"];
+    return CATEGORY_ICONS[cat] || CATEGORY_ICONS["Strategie"];
   }
   function colorForCategory(cat) {
     return CATEGORY_COLORS[cat] || "";
@@ -113,7 +174,7 @@
       if (f.status && p.status !== f.status) return false;
       if (f.priority && p.priority !== f.priority) return false;
       if (f.search) {
-        var hay = (p.name + " " + p.category + " " + p.id).toLowerCase();
+        var hay = (p.name + " " + p.category + " PRJ-" + p.apiId).toLowerCase();
         if (hay.indexOf(f.search) === -1) return false;
       }
       return true;
@@ -140,8 +201,8 @@
           '<div class="project-cell">' +
             '<span class="project-icon ' + colorForCategory(p.category) + '">' + iconForCategory(p.category) + '</span>' +
             '<div>' +
-              '<a class="project-name" href="project-analysis.html">' + esc(p.name) + '</a>' +
-              '<span>' + esc(p.category.toUpperCase()) + ' · ' + esc(p.id) + '</span>' +
+              '<a class="project-name" href="project-analysis.html?id=' + p.apiId + '">' + esc(p.name) + '</a>' +
+              '<span>' + esc(p.category.toUpperCase()) + ' · PRJ-' + String(p.apiId).padStart(3, "0") + '</span>' +
             '</div>' +
           '</div>' +
         '</td>' +
@@ -151,8 +212,8 @@
         '<td data-label="Équipe"><span class="team-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' + esc(p.team) + '</span></td>' +
         '<td data-label="Échéance"><span class="team-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + esc(p.due) + '</span></td>' +
         '<td data-label="Actions"><div class="row-actions">' +
-          '<button class="btn-icon" type="button" data-edit="' + p.id + '" aria-label="Modifier ' + esc(p.name) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
-          '<button class="btn-icon danger" type="button" data-delete="' + p.id + '" aria-label="Supprimer ' + esc(p.name) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+          '<button class="btn-icon" type="button" data-edit="' + p.apiId + '" aria-label="Modifier ' + esc(p.name) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' +
+          '<button class="btn-icon danger" type="button" data-delete="' + p.apiId + '" aria-label="Supprimer ' + esc(p.name) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
         '</div></td>' +
       '</tr>';
     }).join("");
@@ -167,7 +228,7 @@
     lanes.innerHTML = LANE_ORDER.map(function (lane) {
       var items = list.filter(function (p) { return p.status === lane.key; });
       var cards = items.length ? items.map(function (p) {
-        return '<div class="roadmap-card" data-edit="' + p.id + '">' +
+        return '<div class="roadmap-card" data-edit="' + p.apiId + '">' +
           '<strong>' + esc(p.name) + '</strong>' +
           '<span>' + esc(p.category) + ' · ' + esc(p.due) + '</span>' +
           '<div class="progress"><div class="progress-bar" style="width:' + p.progress + '%"></div></div>' +
@@ -197,18 +258,19 @@
 
   /* ---------- Modale projet ---------- */
   function openProjectModal(project) {
-    editingId = project ? project.id : null;
+    editingApiId = project ? project.apiId : null;
     var title = $("#project-modal-title");
     var save = $("#project-save");
     if (title) title.textContent = project ? "Modifier le projet" : "Nouveau Projet";
     if (save) save.textContent = project ? "Enregistrer" : "Créer le projet";
 
     $("#p-name").value = project ? project.name : "";
-    $("#p-category").value = project ? project.category : "Stratégie";
+    $("#p-category").value = project ? catToUi(project.category) : "Stratégie";
     $("#p-status").value = project ? project.status : "in-progress";
     $("#p-priority").value = project ? project.priority : "medium";
     $("#p-progress").value = project ? project.progress : 0;
-    $("#p-due").value = project ? project.due : "";
+    // Échéance : champ date natif (YYYY-MM-DD) — vide si le projet n'en a pas
+    $("#p-due").value = project && project.due && project.due !== "À définir" ? project.due : "";
     $("#p-team").value = project ? project.team : 1;
 
     $("#p-name").classList.remove("is-invalid");
@@ -220,10 +282,11 @@
 
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+      window.location.href = "login.html";
+      return;
+    }
     loadProjects();
-    renderTable();
-    renderRoadmap();
-    syncProjectsFromApi();
 
     // Recherche & filtres
     $("#project-search").addEventListener("input", function () {
@@ -251,7 +314,7 @@
       b.addEventListener("click", function () { openProjectModal(null); });
     });
 
-    // Formulaire
+    // Formulaire → API
     $("#project-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var name = $("#p-name").value.trim();
@@ -262,52 +325,54 @@
         return;
       }
 
-      var data = {
+      var progress = Math.max(0, Math.min(100, parseInt($("#p-progress").value, 10) || 0));
+      var payload = {
         name: name,
-        category: $("#p-category").value,
-        status: $("#p-status").value,
-        priority: $("#p-priority").value,
-        progress: Math.max(0, Math.min(100, parseInt($("#p-progress").value, 10) || 0)),
-        due: $("#p-due").value.trim() || "À définir",
-        team: $("#p-team").value || "1"
+        category: catToApi($("#p-category").value),
+        status: UI_TO_API[$("#p-status").value] || "preparation",
+        progress: progress,
+        due_date: $("#p-due").value.trim() || null
       };
+      var saveBtn = $("#project-save");
+      if (saveBtn) { saveBtn.classList.add("is-loading"); saveBtn.disabled = true; }
 
-      if (editingId) {
-        var idx = projects.findIndex(function (p) { return p.id === editingId; });
-        if (idx !== -1) {
-          data.id = editingId;
-          projects[idx] = data;
-        }
-        if (window.IntelliApp) window.IntelliApp.showToast("Projet « " + name + " » mis à jour.", "success");
+      var request;
+      if (editingApiId) {
+        request = window.IntelliAPI.updateProject(editingApiId, payload);
       } else {
-        var nextNum = projects.reduce(function (max, p) {
-          var n = parseInt((p.id || "PRJ-000").replace("PRJ-", ""), 10) || 0;
-          return Math.max(max, n);
-        }, 0) + 1;
-        data.id = "PRJ-" + ("00" + nextNum).slice(-3);
-        projects.push(data);
-        if (window.IntelliApp) window.IntelliApp.showToast("Projet « " + name + " » créé avec succès.", "success");
+        request = window.IntelliAPI.createProject(payload);
       }
 
-      persistProjects();
-      renderTable();
-      renderRoadmap();
-      if (window.IntelliApp) window.IntelliApp.closeModal(document.getElementById("project-modal"));
+      request.then(function () {
+        if (saveBtn) { saveBtn.classList.remove("is-loading"); saveBtn.disabled = false; }
+        if (window.IntelliApp) {
+          window.IntelliApp.closeModal(document.getElementById("project-modal"));
+          window.IntelliApp.showToast(
+            editingApiId ? "Projet « " + name + " » mis à jour." : "Projet « " + name + " » créé avec succès.",
+            "success");
+        }
+        editingApiId = null;
+        loadProjects();
+      }).catch(function (err) {
+        if (saveBtn) { saveBtn.classList.remove("is-loading"); saveBtn.disabled = false; }
+        var msg = (err && err.message) || "Erreur lors de l'enregistrement du projet.";
+        if (window.IntelliApp) window.IntelliApp.showToast(msg, "error");
+      });
     });
 
     // Délégation : modifier / supprimer
     document.addEventListener("click", function (e) {
       var editBtn = e.target.closest("[data-edit]");
       if (editBtn) {
-        var p = projects.find(function (x) { return x.id === editBtn.getAttribute("data-edit"); });
+        var p = projects.find(function (x) { return String(x.apiId) === String(editBtn.getAttribute("data-edit")); });
         if (p) openProjectModal(p);
         return;
       }
       var delBtn = e.target.closest("[data-delete]");
       if (delBtn) {
-        var d = projects.find(function (x) { return x.id === delBtn.getAttribute("data-delete"); });
+        var d = projects.find(function (x) { return String(x.apiId) === String(delBtn.getAttribute("data-delete")); });
         if (d) {
-          deletingId = d.id;
+          deletingApiId = d.apiId;
           var nameEl = $("#delete-project-name");
           if (nameEl) nameEl.textContent = d.name;
           if (window.IntelliApp) window.IntelliApp.openModal("#delete-modal");
@@ -315,19 +380,24 @@
       }
     });
 
-    // Confirmation suppression
+    // Confirmation suppression → API
     $("#delete-confirm").addEventListener("click", function () {
-      if (deletingId) {
-        projects = projects.filter(function (p) { return p.id !== deletingId; });
-        persistProjects();
-        renderTable();
-        renderRoadmap();
+      if (!deletingApiId) return;
+      var btn = $("#delete-confirm");
+      if (btn) { btn.classList.add("is-loading"); btn.disabled = true; }
+      window.IntelliAPI.deleteProject(deletingApiId).then(function () {
+        if (btn) { btn.classList.remove("is-loading"); btn.disabled = false; }
         if (window.IntelliApp) {
           window.IntelliApp.closeModal(document.getElementById("delete-modal"));
           window.IntelliApp.showToast("Projet supprimé.", "success");
         }
-        deletingId = null;
-      }
+        deletingApiId = null;
+        loadProjects();
+      }).catch(function (err) {
+        if (btn) { btn.classList.remove("is-loading"); btn.disabled = false; }
+        var msg = (err && err.message) || "Erreur lors de la suppression.";
+        if (window.IntelliApp) window.IntelliApp.showToast(msg, "error");
+      });
     });
   });
 })();

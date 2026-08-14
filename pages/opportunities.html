@@ -45,15 +45,15 @@
           <div class="hero-badge-big">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
             <div>
-              <strong>2,4 M</strong>
-              <span>de points de données analysés</span>
+              <strong data-opp-count>—</strong>
+              <span>opportunités actives</span>
             </div>
           </div>
           <div class="hero-badge-big violet">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             <div>
-              <strong>42</strong>
-              <span>opportunités actives</span>
+              <strong data-watch-count-hero>—</strong>
+              <span>dans votre watchlist</span>
             </div>
           </div>
         </div>
@@ -80,7 +80,6 @@
           </button>
           <select class="form-select" id="market-sort" aria-label="Trier par">
             <option value="score">Trier par : Score</option>
-            <option value="growth">Trier par : Croissance</option>
             <option value="risk">Trier par : Risque</option>
           </select>
         </div>
@@ -100,17 +99,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
               </span>
               <div>
-                <strong>Tendances émergentes</strong>
-                <small>Détectées par votre IA</small>
+                <strong>Catégories disponibles</strong>
+                <small>Répartition des opportunités</small>
               </div>
-              <span class="chip chip-blue">12</span>
+              <span class="chip chip-blue" data-cat-count>—</span>
             </div>
-            <ul class="rail-list">
-              <li><span class="trend-dot blue"></span>IA générative appliquée aux PME</li>
-              <li><span class="trend-dot violet"></span>Automatisation de la conformité</li>
-              <li><span class="trend-dot green"></span>E-santé à domicile</li>
-              <li><span class="trend-dot amber"></span>Logistique du dernier kilomètre</li>
-              <li><span class="trend-dot blue"></span>EdTech personnalisée</li>
+            <ul class="rail-list" data-cat-list>
+              <li>Chargement…</li>
             </ul>
           </section>
 
@@ -124,20 +119,19 @@
                 <small>Recommandations personnalisées</small>
               </div>
             </div>
-            <p class="rail-text">
-              Notre algorithme a identifié 3 opportunités alignées avec votre objectif financier.
-              Le marché cible atteint <strong>saturation dans 14 mois</strong> — agissez rapidement.
+            <p class="rail-text" data-rail-text>
+              Chargement de vos recommandations…
             </p>
             <div class="rail-goal">
-              <span>Objectif Financier</span>
-              <strong>12 450 € / mois</strong>
+              <span>Score moyen</span>
+              <strong data-rail-score>—</strong>
             </div>
             <div class="rail-score">
               <div>
-                <span>Score de compatibilité</span>
-                <strong>79%</strong>
+                <span>Compatibilité moyenne</span>
+                <strong data-rail-score-pct>—</strong>
               </div>
-              <div class="progress"><div class="progress-bar" style="width:79%"></div></div>
+              <div class="progress"><div class="progress-bar" data-rail-score-bar style="width:0%"></div></div>
             </div>
             <button class="btn btn-primary btn-sm btn-block" type="button" data-toast="Mise à jour des recommandations IA…">
               Mettre à jour les données
@@ -151,17 +145,12 @@
               </span>
               <div>
                 <strong>Marché Global</strong>
-                <small>Opportunités suivies</small>
+                <small>Opportunités actives</small>
               </div>
-              <strong class="rail-big-num">42</strong>
+              <strong class="rail-big-num" data-market-count>—</strong>
             </div>
           </section>
         </aside>
-      </div>
-
-      <!-- Charger plus -->
-      <div class="load-more">
-        <button class="btn btn-secondary" type="button" id="load-more">Charger plus d'opportunités</button>
       </div>
 
       <!-- Outils d'exécution -->
@@ -213,15 +202,6 @@
             <button class="filter-chip" type="button" data-value="partenariat">Partenariat</button>
             <button class="filter-chip" type="button" data-value="recherche">Recherche</button>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Croissance minimale</label>
-          <select class="form-select" id="filter-growth">
-            <option value="">Indifférent</option>
-            <option value="20">+20% / an</option>
-            <option value="40">+40% / an</option>
-            <option value="60">+60% / an</option>
-          </select>
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Niveau de risque</label>

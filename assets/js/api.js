@@ -5,8 +5,8 @@
    - Auth : register, login, logout, me, onboarding
    - Assistant : envoi message (conversation persistée)
    - Projets : CRUD + analyse Gemini
-   - Repli automatique : si le backend est injoignable, retourne
-     null et laisse les pages fonctionner en mode démo (store).
+   - En cas de backend injoignable, les appels échouent et les pages
+     affichent leurs états d'erreur (aucune donnée simulée).
    ============================================================ */
 (function (global) {
   "use strict";
@@ -102,6 +102,9 @@
     },
     me: function () {
       return this.request("auth/me");
+    },
+    dashboard: function () {
+      return this.request("auth/dashboard");
     },
     fetchProfile: function () {
       return this.safeRequest("auth/profile");

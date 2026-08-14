@@ -171,22 +171,6 @@
     if (goals) goals.textContent = state.goals.map(function (g) { return GOAL_LABELS[g] || g; }).join(", ") || "—";
   }
 
-  /* ---------- Sauvegarde ---------- */
-  function saveOnboarding() {
-    try {
-      var store = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
-      store.onboarding = {
-        profile: state.profile,
-        experience: state.experience,
-        projectName: state.projectName.trim(),
-        projectDesc: state.projectDesc.trim(),
-        domain: state.domain,
-        goals: state.goals
-      };
-      localStorage.setItem("intellitamed_store_v1", JSON.stringify(store));
-    } catch (e) { /* stockage indisponible */ }
-  }
-
   /* ---------- Événements ---------- */
   var nextBtn = $("#wizard-next");
   var prevBtn = $("#wizard-prev");
@@ -206,65 +190,36 @@
 
   if (finishBtn) {
     finishBtn.addEventListener("click", function () {
-      saveOnboarding();
+      if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+        window.location.href = "login.html";
+        return;
+      }
       finishBtn.classList.add("is-loading");
       finishBtn.disabled = true;
 
-      function finish() {
+      window.IntelliAPI.saveOnboarding({
+        profile_type: state.profile || "",
+        domain: state.domain || "",
+        experience: state.experience || "",
+        goals: state.goals || [],
+        interests: state.goals || [],
+        project_name: state.projectName.trim(),
+        project_description: state.projectDesc.trim(),
+        ai_preferences: {}
+      }).then(function () {
+        finishBtn.classList.remove("is-loading");
+        finishBtn.disabled = false;
         if (window.IntelliApp) window.IntelliApp.showToast("Onboarding terminé. Bienvenue ! 🚀", "success");
         setTimeout(function () { window.location.href = "dashboard.html"; }, 1100);
-      }
-
-      // Backend connecté → enregistrement réel du profil (repli local sinon)
-      if (window.IntelliAPI && window.IntelliAPI.getToken()) {
-        window.IntelliAPI.saveOnboarding({
-          profile_type: state.profile || "",
-          domain: state.domain || "",
-          experience: state.experience || "",
-          goals: state.goals || [],
-          interests: state.goals || [],
-          ai_preferences: {}
-        }).then(function () { finish(); }).catch(function () {
-          finishBtn.classList.remove("is-loading");
-          finishBtn.disabled = false;
-          finish();
-        });
-      } else {
-        finish();
-      }
+      }).catch(function (err) {
+        finishBtn.classList.remove("is-loading");
+        finishBtn.disabled = false;
+        if (window.IntelliApp) {
+          window.IntelliApp.showToast("Erreur : " + ((err && err.message) || "enregistrement impossible"), "error");
+        }
+      });
     });
   }
-
-  // Pré-remplissage depuis le store (retour arrière)
-  try {
-    var existing = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
-    if (existing.onboarding) {
-      var ob = existing.onboarding;
-      state.profile = ob.profile; state.experience = ob.experience;
-      state.projectName = ob.projectName; state.projectDesc = ob.projectDesc;
-      state.domain = ob.domain; state.goals = ob.goals || [];
-      if (ob.profile) {
-        var pc = $(".profile-card[data-profile='" + ob.profile + "']");
-        if (pc) pc.classList.add("is-selected");
-      }
-      if (ob.experience) {
-        var ec = $(".exp-option[data-value='" + ob.experience + "']");
-        if (ec) ec.classList.add("is-selected");
-      }
-      if (ob.domain) {
-        var dc = $(".domain-chip[data-value='" + ob.domain + "']");
-        if (dc) dc.classList.add("is-selected");
-      }
-      if (nameInput && ob.projectName) nameInput.value = ob.projectName;
-      if (descInput && ob.projectDesc) descInput.value = ob.projectDesc;
-      if (ob.goals) {
-        ob.goals.forEach(function (g) {
-          var cb = $(".goal-option input[value='" + g + "']");
-          if (cb) cb.checked = true;
-        });
-      }
-    }
-  } catch (e) { /* noop */ }
 
   // Init : détection de l'étape 4 pour le résumé
   document.addEventListener("click", function (e) {

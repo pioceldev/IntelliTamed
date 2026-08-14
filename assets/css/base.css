@@ -134,6 +134,22 @@ ol {
 }
 
 /* ============================================================
+   Logo (image intellitamed.png)
+   ============================================================ */
+
+.brand-logo {
+  display: inline-block;
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Variante claire : à utiliser sur fond sombre (footer landing, etc.) */
+.brand-logo.light {
+  filter: brightness(0) invert(1);
+}
+
+/* ============================================================
    Utilitaires
    ============================================================ */
 

@@ -8,8 +8,6 @@
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
-  var PREFERENCES_KEY = "intellitamed_prefs_v1";
-
   /* ---------- Onglets ---------- */
   function initTabs() {
     document.querySelectorAll(".tab-btn").forEach(function (btn) {
@@ -28,31 +26,26 @@
     });
   }
 
-  /* ---------- Profil ---------- */
+  /* ---------- Profil (100% API) ---------- */
   function loadProfile() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-    var p = store.profile || {};
-
-    // Backend Django connecté → on charge le profil réel en priorité
-    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
-      window.IntelliAPI.fetchProfile().then(function (prof) {
-        if (!prof) return;
-        p = {
-          firstName: prof.first_name || "",
-          lastName: prof.last_name || "",
-          email: prof.email || "",
-          role: prof.profile_type || "",
-          bio: prof.bio || "",
-          website: prof.website || "",
-          linkedin: prof.linkedin || ""
-        };
-        store.profile = Object.assign({}, store.profile || {}, p);
-        if (window.IntelliApp) window.IntelliApp.saveStore(store);
-        fillProfileForm(p);
-      }).catch(function () { /* backend injoignable → profil local */ });
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+      window.location.href = "login.html";
+      return;
     }
-
-    fillProfileForm(p);
+    window.IntelliAPI.fetchProfile().then(function (prof) {
+      if (!prof) return;
+      fillProfileForm({
+        firstName: prof.first_name || "",
+        lastName: prof.last_name || "",
+        email: prof.email || "",
+        role: prof.profile_type || "",
+        bio: prof.bio || "",
+        website: prof.website || "",
+        linkedin: prof.linkedin || ""
+      });
+    }).catch(function () {
+      if (window.IntelliApp) window.IntelliApp.showToast("Impossible de charger le profil.", "error");
+    });
   }
 
   function fillProfileForm(p) {
@@ -76,36 +69,20 @@
   }
 
   function saveProfile() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
     var profileData = {
-      firstName: $("#pf-first").value.trim() || "Jean",
-      lastName: $("#pf-last").value.trim() || "Dupont",
-      email: $("#pf-email").value.trim(),
-      role: $("#pf-role").value.trim(),
+      first_name: $("#pf-first").value.trim(),
+      last_name: $("#pf-last").value.trim(),
       bio: $("#pf-bio").value.trim(),
       website: $("#pf-website").value.trim(),
       linkedin: $("#pf-linkedin").value.trim(),
-      avatar: store.profile ? (store.profile.avatar || null) : null
+      profile_type: $("#pf-role").value.trim()
     };
-    store.profile = profileData;
-    if (window.IntelliApp) window.IntelliApp.saveStore(store);
-
-    // Backend Django connecté → sauvegarde réelle (repli silencieux sinon)
     if (window.IntelliAPI && window.IntelliAPI.getToken()) {
-      window.IntelliAPI.saveProfile({
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        bio: profileData.bio,
-        website: profileData.website,
-        linkedin: profileData.linkedin,
-        profile_type: profileData.role
-      }).then(function () {
+      window.IntelliAPI.saveProfile(profileData).then(function () {
         if (window.IntelliApp) window.IntelliApp.showToast("Profil mis à jour avec succès.", "success");
-      }).catch(function () {
-        if (window.IntelliApp) window.IntelliApp.showToast("Profil enregistré localement (backend injoignable).");
+      }).catch(function (err) {
+        if (window.IntelliApp) window.IntelliApp.showToast("Erreur : " + ((err && err.message) || "sauvegarde impossible"), "error");
       });
-    } else {
-      if (window.IntelliApp) window.IntelliApp.showToast("Profil mis à jour avec succès.", "success");
     }
   }
 
@@ -119,7 +96,7 @@
       saveProfile();
     });
 
-    // Avatar upload
+    // Avatar : affichage local uniquement (pas d'upload serveur pour l'instant)
     var fileInput = $("#avatar-input");
     var uploadBtn = $("#avatar-upload-btn");
     var removeBtn = $("#avatar-remove-btn");
@@ -136,13 +113,7 @@
       reader.onload = function (ev) {
         var avatar = $("#profile-avatar");
         if (avatar) avatar.innerHTML = '<img src="' + esc(ev.target.result) + '" alt="Photo de profil">';
-        var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-        if (!store.profile) store.profile = {};
-        store.profile.avatar = ev.target.result;
-        if (window.IntelliApp) {
-          window.IntelliApp.saveStore(store);
-          window.IntelliApp.showToast("Photo de profil mise à jour.", "success");
-        }
+        if (window.IntelliApp) window.IntelliApp.showToast("Photo de profil mise à jour (session en cours).", "success");
       };
       reader.readAsDataURL(file);
     });
@@ -150,12 +121,7 @@
     removeBtn.addEventListener("click", function () {
       var avatar = $("#profile-avatar");
       if (avatar) avatar.textContent = "JD";
-      var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-      if (store.profile) store.profile.avatar = null;
-      if (window.IntelliApp) {
-        window.IntelliApp.saveStore(store);
-        window.IntelliApp.showToast("Photo de profil supprimée.");
-      }
+      if (window.IntelliApp) window.IntelliApp.showToast("Photo de profil réinitialisée.");
     });
   }
 
@@ -193,24 +159,42 @@
     });
   }
 
-  /* ---------- Préférences persistées ---------- */
+  /* ---------- Préférences → sauvegardées via le profil API ---------- */
   function initToggles() {
     var prefs = {};
-    try { prefs = JSON.parse(localStorage.getItem(PREFERENCES_KEY) || "{}"); } catch (e) { prefs = {}; }
+    // Chargement depuis le profil API (champ ai_preferences)
+    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
+      window.IntelliAPI.fetchProfile().then(function (prof) {
+        if (!prof) return;
+        prefs = prof.ai_preferences || {};
+        document.querySelectorAll("[data-toggle-persist]").forEach(function (input) {
+          var key = input.getAttribute("data-toggle-persist");
+          if (prefs[key] !== undefined) input.checked = !!prefs[key];
+        });
+      });
+    }
 
     document.querySelectorAll("[data-toggle-persist]").forEach(function (input) {
       var key = input.getAttribute("data-toggle-persist");
-      if (prefs[key] !== undefined) input.checked = prefs[key];
       input.addEventListener("change", function () {
         prefs[key] = input.checked;
-        try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs)); } catch (e) { /* noop */ }
       });
     });
 
     var savePrefs = document.querySelector("[data-save-preferences]");
     if (savePrefs) {
       savePrefs.addEventListener("click", function () {
-        if (window.IntelliApp) window.IntelliApp.showToast("Préférences enregistrées.", "success");
+        if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+        window.IntelliAPI.fetchProfile().then(function (prof) {
+          if (!prof) return;
+          return window.IntelliAPI.saveProfile({
+            ai_preferences: prefs
+          });
+        }).then(function () {
+          if (window.IntelliApp) window.IntelliApp.showToast("Préférences enregistrées.", "success");
+        }).catch(function () {
+          if (window.IntelliApp) window.IntelliApp.showToast("Erreur lors de l'enregistrement des préférences.", "error");
+        });
       });
     }
   }

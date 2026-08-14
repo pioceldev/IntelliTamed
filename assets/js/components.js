@@ -97,10 +97,7 @@
       '<aside class="sidebar" id="sidebar" aria-label="Navigation principale">' +
         '<div class="sidebar-header">' +
           '<a class="brand" href="dashboard.html" aria-label="IntelliTamed — accueil">' +
-            '<span class="brand-mark">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>' +
-            '</span>' +
-            '<span class="brand-name">IntelliTamed</span>' +
+            '<img class="brand-logo" src="../assets/images/intellitamed.png" alt="IntelliTamed">' +
           '</a>' +
           '<button class="sidebar-close" type="button" data-close-sidebar aria-label="Fermer le menu">' + icon("close") + "</button>" +
         '</div>' +
@@ -126,9 +123,9 @@
     var badge = cfg.badge;
     var actions = cfg.actions || "";
 
-    // Utilisateur connecté (JWT) sinon profil de démo
-    var userName = "Jean Dupont";
-    var initials = "JD";
+    // Utilisateur connecté (JWT)
+    var userName = "Mon profil";
+    var initials = "MP";
     var apiUser = global.IntelliAPI && global.IntelliAPI.getUser ? global.IntelliAPI.getUser() : null;
     if (apiUser) {
       var first = apiUser.first_name || "";
@@ -140,14 +137,6 @@
         userName = apiUser.email || userName;
         initials = userName.slice(0, 2).toUpperCase();
       }
-    } else if (global.IntelliApp) {
-      try {
-        var store = global.IntelliApp.loadStore();
-        if (store && store.profile && store.profile.firstName) {
-          userName = store.profile.firstName + " " + (store.profile.lastName || "");
-          initials = (store.profile.firstName.charAt(0) + (store.profile.lastName || "").charAt(0)).toUpperCase();
-        }
-      } catch (e) { /* store indisponible */ }
     }
 
     var logoutHref = global.IntelliAPI && global.IntelliAPI.getToken() ? "#" : "login.html";

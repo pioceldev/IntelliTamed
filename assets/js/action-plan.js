@@ -1,10 +1,9 @@
 /* ============================================================
    IntelliTamed — Plan d'action
-   Phases, tâches, progression.
-   - Backend connecté (JWT) : les étapes sont persistées via
-     /api/action-plans + /api/action-steps ; « Générer avec
-     Gemini » crée un plan complet depuis un projet.
-   - Repli local (localStorage) si backend injoignable.
+   Phases, tâches, progression — 100% API Django :
+   - /api/action-plans + /api/action-steps (persistance)
+   - « Générer avec Gemini » crée un plan complet depuis un projet
+   Aucune donnée locale : sans connexion → redirection login.
    ============================================================ */
 
 (function () {
@@ -30,17 +29,7 @@
     return !!(window.IntelliAPI && window.IntelliAPI.getToken());
   }
 
-  /* ---------- Stockage local (repli) ---------- */
-  function loadTasks() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-    tasks = store.tasks || {};
-  }
-  function persistTasks() {
-    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-    store.tasks = tasks;
-    if (window.IntelliApp) window.IntelliApp.saveStore(store);
-  }
-
+  /* ---------- État en mémoire (aucun localStorage) ---------- */
   function allTasks() {
     var out = [];
     PHASES.forEach(function (p) { (tasks[p.id] || []).forEach(function (t) { out.push(t); }); });
@@ -74,7 +63,6 @@
           done: step.status === "done"
         });
       });
-      if (window.IntelliApp) window.IntelliApp.saveStore;
       renderPhases();
       renderTaskDetail();
       updateProgress();
@@ -149,7 +137,6 @@
             done: step.status === "done"
           });
         });
-        persistTasks();
         setServerStatus("plan", plan);
         renderPhases();
         renderTaskDetail();
@@ -350,22 +337,19 @@
 
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
-    loadTasks();
-
-    // Si connecté : on tente de charger le plan serveur (sinon repli local)
-    if (isApi()) {
-      loadFromServer().then(function (loaded) {
-        if (!loaded) {
-          renderPhases();
-          renderTaskDetail();
-          updateProgress();
-        }
-      });
-    } else {
-      renderPhases();
-      renderTaskDetail();
-      updateProgress();
+    // Garde : pas connecté → redirection login (données 100% serveur)
+    if (!isApi()) {
+      window.location.href = "login.html";
+      return;
     }
+
+    loadFromServer().then(function (loaded) {
+      if (!loaded) {
+        renderPhases();
+        renderTaskDetail();
+        updateProgress();
+      }
+    });
 
     var search = $("#plan-search");
     if (search) search.addEventListener("input", renderPhases);
@@ -395,7 +379,6 @@
           tasks[phase] = tasks[phase].filter(function (t) { return t.id !== id; });
           if (removed) syncStepDelete(removed);
           if (activeTaskId === id) activeTaskId = null;
-          persistTasks();
           renderPhases();
           renderTaskDetail();
           updateProgress();
@@ -411,7 +394,6 @@
         if (t) {
           t.done = !t.done;
           syncStepToggle(t, t.done);
-          persistTasks();
           renderPhases();
           renderTaskDetail();
           updateProgress();
@@ -432,7 +414,6 @@
       if (t) {
         t.done = cb.checked;
         syncStepToggle(t, t.done);
-        persistTasks();
         renderPhases();
         renderTaskDetail();
         updateProgress();
@@ -467,7 +448,6 @@
         };
         tasks[phaseId].push(newTask);
         syncStepCreate(newTask, phaseId);
-        persistTasks();
         renderPhases();
         updateProgress();
         if (window.IntelliApp) {

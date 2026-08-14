@@ -194,3 +194,10 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [FRONTEND_ROOT]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---------------------------------------------------------------
+# Brevo (emails transactionnels) — optionnel en développement
+# ---------------------------------------------------------------
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
+BREVO_SENDER_EMAIL = os.environ.get("BREVO_SENDER_EMAIL", "no-reply@intellitamed.com")
+BREVO_SENDER_NAME = os.environ.get("BREVO_SENDER_NAME", "IntelliTamed")

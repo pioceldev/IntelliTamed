@@ -1,76 +1,22 @@
 /* ============================================================
    IntelliTamed — Assistant IA
-   Chat fonctionnel branché sur l'API Django (backend/) qui relaie
+   Chat 100% connecté au backend Django (backend/) qui relaie
    vers l'API Gemini (clé côté serveur, jamais dans le frontend).
-   - POST /api/assistant (conversation persistée + contexte)
-   - GET  /api/health   (état de la connexion)
-   Aucune réponse simulée : en cas de backend injoignable, un
-   message d'erreur clair est affiché.
+   - POST /api/assistant          (message → réponse Gemini)
+   - GET  /api/conversations/     (historique serveur)
+   - GET  /api/conversations/{id} (messages d'une conversation)
+   - DELETE /api/conversations/{id}
+   Aucune réponse simulée, aucun localStorage :
+   sans connexion → redirection login.
    ============================================================ */
 
 (function () {
   "use strict";
 
-  var STORE_KEY = "intellitamed_assistant_v1";
-
-  /* ============================================================
-     Aucune réponse simulée : les réponses viennent UNIQUEMENT du
-     backend (API Django → Gemini). Si le backend est injoignable,
-     un message d'erreur clair est affiché à l'utilisateur.
-     ============================================================ */
-
-  /* ---------- État ---------- */
-  var currentConversation = "new";
-  var conversations = loadConversations();
-
-  // Charge l'historique serveur (conversations persistées via l'API Django)
-  function loadServerConversations() {
-    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return Promise.resolve();
-    return window.IntelliAPI.listConversations().then(function (data) {
-      var list = (data && data.results) || [];
-      var pending = list.map(function (conv) {
-        return window.IntelliAPI.getConversation(conv.id).then(function (detail) {
-          if (!detail || !detail.messages || !detail.messages.length) return;
-          var key = "srv-" + conv.id;
-          conversations[key] = {
-            serverId: conv.id,
-            title: conv.title || "Conversation",
-            date: (conv.updated_at || conv.created_at || "").slice(0, 10),
-            messages: detail.messages.map(function (m) {
-              return {
-                role: m.role === "model" ? "ai" : "user",
-                text: m.content || "",
-                time: (m.created_at || "").slice(11, 16)
-              };
-            })
-          };
-        });
-      });
-      return Promise.all(pending).then(function () {
-        saveConversations();
-        updateHistory();
-      });
-    }).catch(function () { /* backend injoignable */ });
-  }
-
-  function loadConversations() {
-    try {
-      var raw = localStorage.getItem(STORE_KEY);
-      if (raw) {
-        var data = JSON.parse(raw);
-        // L'historique ne contient que les conversations réelles de l'utilisateur
-        Object.keys(data).forEach(function (k) {
-          if (!data[k] || !data[k].messages || data[k].messages.length === 0) delete data[k];
-        });
-        return data;
-      }
-    } catch (e) { /* noop */ }
-    return {};
-  }
-
-  function saveConversations() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(conversations)); } catch (e) { /* noop */ }
-  }
+  /* ---------- État (mémoire seulement, rien en localStorage) ---------- */
+  var currentConversation = "new";          // clé locale : "new" ou "srv-{id}"
+  var conversations = {};                   // { "new": {...}, "srv-3": {...} }
+  var serverLoaded = false;
 
   /* ---------- DOM ---------- */
   var messagesEl = document.getElementById("chat-messages");
@@ -88,7 +34,6 @@
   }
 
   function markdownLight(text) {
-    // Convertit **gras** et les listes simples en HTML
     var out = esc(text);
     out = out.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     out = out.replace(/(?:^|\n)• /g, "\n<span class='msg-bullet'>•</span> ");
@@ -103,7 +48,7 @@
 
   function renderMessages(list) {
     messagesEl.innerHTML = "";
-    list.forEach(function (m) {
+    (list || []).forEach(function (m) {
       messagesEl.appendChild(buildMessageEl(m));
     });
     scrollBottom();
@@ -140,13 +85,11 @@
       retry.className = "msg-retry";
       retry.textContent = "↻ Réessayer";
       retry.addEventListener("click", function () {
-        // relance avec le dernier message utilisateur
+        var conv = conversations[currentConversation];
         var lastUser = null;
-        for (var i = messagesEl.querySelectorAll(".msg").length - 1; i >= 0; i--) { /* noop */ }
-        if (conversations[currentConversation] && conversations[currentConversation].messages) {
-          var msgs = conversations[currentConversation].messages;
-          for (var j = msgs.length - 1; j >= 0; j--) {
-            if (msgs[j].role === "user") { lastUser = msgs[j]; break; }
+        if (conv && conv.messages) {
+          for (var j = conv.messages.length - 1; j >= 0; j--) {
+            if (conv.messages[j].role === "user") { lastUser = conv.messages[j]; break; }
           }
         }
         if (lastUser) sendMessage(lastUser.text);
@@ -184,7 +127,14 @@
     if (input) input.disabled = busy;
   }
 
-  /* ---------- Envoi ---------- */
+  function hideSuggestions() {
+    if (suggestionsEl) suggestionsEl.style.display = "none";
+  }
+  function showSuggestions() {
+    if (suggestionsEl) suggestionsEl.style.display = "";
+  }
+
+  /* ---------- Envoi (100% API Django → Gemini) ---------- */
   function sendMessage(text) {
     text = text.trim();
     if (!text) return;
@@ -206,87 +156,40 @@
     setBusy(true);
     showTyping();
 
-    // Historique envoyé au backend (sans les messages d'erreur)
-    var history = conv.messages
-      .filter(function (m) { return !m.error; })
-      .map(function (m) { return { role: m.role, text: m.text }; });
-
-    callGemini(text, history)
-      .then(function (reply) {
+    window.IntelliAPI.sendMessage(text, conv.serverId || null, conv.title || null)
+      .then(function (data) {
         hideTyping();
-        conv.messages.push({ role: "ai", text: reply, time: nowTime() });
-        saveConversations();
+        if (!data || !data.reply) {
+          throw new Error("Gemini n'a pas renvoyé de réponse.");
+        }
+        // Mémorise l'id serveur pour garder le contexte de conversation
+        if (data.conversation_id && conv.serverId !== data.conversation_id) {
+          conv.serverId = data.conversation_id;
+        }
+        conv.messages.push({ role: "ai", text: data.reply, time: nowTime() });
         renderMessages(conv.messages);
         setBusy(false);
+        if (chatTitle && conv.title) chatTitle.textContent = conv.title;
+        // Recharge l'historique pour afficher la conversation serveur créée
+        loadServerConversations().then(function () {
+          if (data.conversation_id) {
+            currentConversation = "srv-" + data.conversation_id;
+            updateHistory();
+          }
+        });
         checkGeminiStatus();
       })
       .catch(function (err) {
-        // Backend injoignable ou erreur → message d'erreur clair (pas de réponse simulée)
+        hideTyping();
         var msg = "Le service IA est momentanément indisponible. Vérifiez que le serveur est démarré " +
           "(cd backend && python manage.py runserver) et que la clé Gemini est configurée dans backend/.env.";
         if (err && err.message && err.message.indexOf("indisponible") === -1) {
           msg = "⚠️ " + (err.message || msg);
         }
-        setTimeout(function () {
-          hideTyping();
-          conv.messages.push({ role: "ai", text: msg, time: nowTime(), error: true });
-          saveConversations();
-          renderMessages(conv.messages);
-          setBusy(false);
-          checkGeminiStatus();
-        }, 400);
-      });
-  }
-
-  /* ---------- Appel backend Gemini ----------
-     Priorité : API Django (si token JWT présent) — la conversation est
-     persistée côté serveur (conversation_id).
-     Repli : proxy Node server/server.js (sans auth).
-     Dernier recours (catch dans sendMessage) : réponses simulées. */
-  function callGemini(text, history) {
-    var conv = conversations[currentConversation];
-
-    // 1. Backend Django : token JWT disponible
-    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
-      return window.IntelliAPI.sendMessage(text, conv ? conv.serverId : null, conv ? conv.title : null)
-        .then(function (data) {
-          if (!data || !data.reply) {
-            throw new Error("Gemini n'a pas renvoyé de réponse.");
-          }
-          // On mémorise l'id serveur de la conversation pour garder le contexte
-          if (conv && data.conversation_id && conv.serverId !== data.conversation_id) {
-            conv.serverId = data.conversation_id;
-            saveConversations();
-          }
-          return data.reply;
-        });
-    }
-
-    // 2. Proxy Node (sans auth) : historique envoyé tel quel
-    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = controller ? setTimeout(function () { controller.abort(); }, 30000) : null;
-
-    return fetch("/api/assistant", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: controller ? controller.signal : undefined,
-      body: JSON.stringify({ message: text, history: history || [] })
-    })
-      .then(function (res) {
-        return res.json().catch(function () {
-          throw new Error("Réponse serveur invalide (" + res.status + ")");
-        }).then(function (data) {
-          if (!res.ok) {
-            throw new Error((data && data.error) || "Erreur serveur (" + res.status + ")");
-          }
-          if (!data || !data.reply) {
-            throw new Error("Gemini n'a pas renvoyé de réponse.");
-          }
-          return data.reply;
-        });
-      })
-      .finally(function () {
-        if (timer) clearTimeout(timer);
+        conv.messages.push({ role: "ai", text: msg, time: nowTime(), error: true });
+        renderMessages(conv.messages);
+        setBusy(false);
+        checkGeminiStatus();
       });
   }
 
@@ -294,10 +197,8 @@
   function checkGeminiStatus() {
     var el = document.getElementById("ai-status");
     if (!el) return;
-
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
-
     fetch("/api/health", { signal: controller ? controller.signal : undefined })
       .then(function (res) { return res.json(); })
       .then(function (data) {
@@ -307,28 +208,50 @@
           el.classList.remove("demo");
           el.title = "Réponses générées par " + (data.model || "Gemini");
         } else {
-          el.textContent = "Mode démo";
+          el.textContent = "Gemini non configuré";
           el.classList.add("demo");
-          el.title = "Réponses simulées — ajoutez GEMINI_API_KEY dans backend/.env ou server/.env";
+          el.title = "Ajoutez GEMINI_API_KEY dans backend/.env";
         }
       })
       .catch(function () {
         if (timer) clearTimeout(timer);
-        el.textContent = "Mode démo";
+        el.textContent = "Backend injoignable";
         el.classList.add("demo");
-        el.title = "Backend injoignable — réponses simulées";
+        el.title = "Démarrez le backend : cd backend && python manage.py runserver";
       });
   }
 
-  function hideSuggestions() {
-    if (suggestionsEl) suggestionsEl.style.display = "none";
+  /* ---------- Historique serveur (seule source de vérité) ---------- */
+  function loadServerConversations() {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return Promise.resolve();
+    return window.IntelliAPI.listConversations().then(function (data) {
+      var list = (data && data.results) || [];
+      var pending = list.map(function (conv) {
+        return window.IntelliAPI.getConversation(conv.id).then(function (detail) {
+          if (!detail || !detail.messages || !detail.messages.length) return;
+          var key = "srv-" + conv.id;
+          conversations[key] = {
+            serverId: conv.id,
+            title: conv.title || "Conversation",
+            date: (conv.updated_at || conv.created_at || "").slice(0, 10),
+            messages: detail.messages.map(function (m) {
+              return {
+                role: m.role === "model" ? "ai" : "user",
+                text: m.content || "",
+                time: (m.created_at || "").slice(11, 16)
+              };
+            })
+          };
+        });
+      });
+      return Promise.all(pending).then(function () {
+        serverLoaded = true;
+        updateHistory();
+      });
+    }).catch(function () { /* backend injoignable */ });
   }
 
-  function showSuggestions() {
-    if (suggestionsEl) suggestionsEl.style.display = "";
-  }
-
-  /* ---------- Historique ---------- */
+  /* ---------- Historique (rendu) ---------- */
   function updateHistory() {
     if (!historyList) return;
     historyList.innerHTML = "";
@@ -360,7 +283,6 @@
       });
       li.appendChild(btn);
 
-      // Bouton suppression (serveur ou local)
       var del = document.createElement("button");
       del.type = "button";
       del.className = "history-del";
@@ -375,18 +297,17 @@
     if (count) count.textContent = String(historyList.children.length);
   }
 
-  /* ---------- Suppression de conversation ---------- */
+  /* ---------- Suppression de conversation (serveur + mémoire) ---------- */
   function deleteConversation(id) {
     var conv = conversations[id];
     if (!conv) return;
     var remove = function () {
       delete conversations[id];
-      saveConversations();
       if (currentConversation === id) newConversation(true);
       else updateHistory();
       if (window.IntelliApp) window.IntelliApp.showToast("Conversation supprimée.");
     };
-    if (conv.serverId && window.IntelliAPI) {
+    if (conv.serverId && window.IntelliAPI && window.IntelliAPI.getToken()) {
       window.IntelliAPI.deleteConversation(conv.serverId)
         .then(remove)
         .catch(function () { remove(); });
@@ -398,8 +319,7 @@
   /* ---------- Nouvelle discussion ---------- */
   function newConversation(skipFocus) {
     currentConversation = "new";
-    conversations[currentConversation] = { title: "", date: "Aujourd'hui", messages: [] };
-    saveConversations();
+    conversations["new"] = { title: "", date: "Aujourd'hui", messages: [] };
     chatTitle.textContent = "Nouvelle discussion";
     showSuggestions();
     renderMessages([]);
@@ -409,6 +329,12 @@
 
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
+    // Garde : pas connecté → redirection login
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+      window.location.href = "login.html";
+      return;
+    }
+
     if (form) {
       form.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -429,7 +355,6 @@
       });
     }
 
-    // Suggestions
     document.querySelectorAll("[data-prompt]").forEach(function (chip) {
       chip.addEventListener("click", function () {
         var p = chip.getAttribute("data-prompt");
@@ -442,7 +367,6 @@
     var newBtn = document.getElementById("new-chat-btn");
     if (newBtn) newBtn.addEventListener("click", newConversation);
 
-    // Suppression (délégation sur l'historique)
     if (historyList) {
       historyList.addEventListener("click", function (e) {
         var del = e.target.closest(".history-del");
@@ -452,15 +376,8 @@
       });
     }
 
-    // Initialisation
-    if (currentConversation === "new") {
-      var stored = conversations["new"];
-      if (stored && stored.messages && stored.messages.length > 0) {
-        hideSuggestions();
-        renderMessages(stored.messages);
-        chatTitle.textContent = stored.title || "Nouvelle discussion";
-      }
-    }
+    // Initialisation : nouvelle discussion + historique serveur
+    newConversation(true);
     updateHistory();
     checkGeminiStatus();
     loadServerConversations();

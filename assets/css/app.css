@@ -44,20 +44,8 @@
   color: var(--dark-text);
 }
 
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--electric-blue), var(--violet));
-  color: var(--white);
-}
-
-.brand-mark svg {
-  width: 16px;
-  height: 16px;
+.brand-logo {
+  height: 38px;
 }
 
 .sidebar-close {

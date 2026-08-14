@@ -1,92 +1,117 @@
 /* ============================================================
    IntelliTamed — Opportunités
-   Marketplace : cartes, filtres, tri, watchlist (localStorage)
+   Marketplace 100% API : cartes, filtres, tri, watchlist serveur.
    ============================================================ */
 
 (function () {
   "use strict";
 
-  // Aucune donnée statique : les opportunités proviennent UNIQUEMENT
-  // de l'API backend (assets/js/api.js → /api/opportunities/).
-  // Sans backend ou sans connexion, la page affiche son état vide.
-  var OPP_DATA = [];
-  var MORE_DATA = [];
-
+  // Aucune donnée statique ni aléatoire : les opportunités proviennent
+  // UNIQUEMENT de l'API backend (/api/opportunities/) et le score de
+  // compatibilité est calculé côté serveur selon le profil utilisateur.
   var RISK_ORDER = { "faible": 0, "moyen": 1, "eleve": 2 };
-  var WATCH_KEY = "intellitamed_watchlist_v1";
 
-  var allOpps = OPP_DATA.slice();
-  var watchlist = loadWatchlist();
+  var allOpps = [];
+  var watchlist = [];
   var activeTab = "all";
 
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
-  function loadWatchlist() {
-    try {
-      return JSON.parse(localStorage.getItem(WATCH_KEY) || "[]");
-    } catch (e) { return []; }
-  }
-  function saveWatchlist() {
-    try { localStorage.setItem(WATCH_KEY, JSON.stringify(watchlist)); } catch (e) { /* noop */ }
-  }
-
   function categoryIcon(cat) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>';
   }
 
-  // Charge les opportunités du backend Django si connecté (repli sur les données locales sinon)
+  // Charge les opportunités du backend Django (données + score + saved)
   function syncOpportunitiesFromApi() {
-    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) {
+      window.location.href = "login.html";
+      return;
+    }
     var TYPE_MAP = {
-      "Emploi": "emploi", "Freelance": "freelance", "Hackathon": "hackathon",
-      "Formation": "formation", "Financement": "financement", "Incubateur": "incubateur",
-      "Partenariat": "partenariat", "Recherche": "recherche"
+      "emploi": "emploi", "freelance": "freelance", "hackathon": "hackathon",
+      "concours": "hackathon", "formation": "formation", "financement": "financement",
+      "incubateur": "incubateur", "partenariat": "partenariat", "recherche": "recherche"
     };
     window.IntelliAPI.listOpportunities().then(function (data) {
-      if (!data || !data.results || !data.results.length) return;
+      var results = (data && data.results) || [];
       // Pré-remplit la watchlist depuis le champ `saved` renvoyé par l'API
-      data.results.forEach(function (o) {
-        if (o.saved && watchlist.indexOf("opp-api-" + o.id) === -1) watchlist.push("opp-api-" + o.id);
+      watchlist = [];
+      results.forEach(function (o) {
+        if (o.saved) watchlist.push("opp-api-" + o.id);
       });
-      saveWatchlist();
       updateWatchCount();
-      allOpps = data.results.map(function (o) {
+      allOpps = results.map(function (o) {
+        var cat = o.category || "partenariat";
         return {
           id: "opp-api-" + o.id,
           title: o.title,
-          category: o.category || "Opportunité",
+          category: cat,
           time: "Publié par " + (o.organization || "IntelliTamed"),
           desc: o.description || "",
-          growth: Math.round(20 + Math.random() * 80),
-          growthLabel: "+" + Math.round(20 + Math.random() * 80) + "%/an",
+          growth: 0,
+          growthLabel: "—",
           risk: "moyen",
           riskLabel: "Moyen",
-          score: Math.round(60 + Math.random() * 35),
-          type: TYPE_MAP[o.category] || "partenariat"
+          score: o.score !== undefined ? o.score : 60,
+          type: TYPE_MAP[cat] || "partenariat"
         };
       });
-      var loadMore = $("#load-more");
-      if (loadMore) loadMore.disabled = true;
       renderCards();
-    }).catch(function () { /* backend injoignable → données locales */ });
+      renderRail(results);
+    }).catch(function () {
+      renderCards();
+    });
   }
 
-  // Charge la watchlist du backend (si connecté) et fusionne avec le local
-  function syncWatchlistFromApi() {
-    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
-    window.IntelliAPI.listWatchlist().then(function (data) {
-      if (!data || !data.results) return;
-      var saved = data.results.map(function (w) {
-        return "opp-api-" + ((w.opportunity && w.opportunity.id) || w.opportunity_id);
-      }).filter(function (id) { return id && id.indexOf("opp-api-") === 0 && id.length > 8; });
-      // fusion sans doublons
-      saved.forEach(function (id) {
-        if (watchlist.indexOf(id) === -1) watchlist.push(id);
-      });
-      saveWatchlist();
-      updateWatchCount();
-    }).catch(function () { /* backend injoignable */ });
+  // Rail IA : catégories disponibles, score moyen, compteurs — depuis les données réelles
+  function renderRail(results) {
+    var countEl = $("[data-opp-count]");
+    if (countEl) countEl.textContent = results.length;
+    var marketCount = $("[data-market-count]");
+    if (marketCount) marketCount.textContent = results.length;
+    var watchHero = $("[data-watch-count-hero]");
+    if (watchHero) watchHero.textContent = watchlist.length;
+
+    // Catégories distinctes (comptées)
+    var CATEGORY_LABELS = {
+      emploi: "Emploi", freelance: "Freelance", hackathon: "Hackathon", concours: "Concours",
+      formation: "Formation", financement: "Financement", incubateur: "Incubateur",
+      partenariat: "Partenariat", recherche: "Recherche"
+    };
+    var counts = {};
+    results.forEach(function (o) { counts[o.category] = (counts[o.category] || 0) + 1; });
+    var cats = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    var catList = $("[data-cat-list]");
+    var catCount = $("[data-cat-count]");
+    if (catCount) catCount.textContent = cats.length;
+    if (catList) {
+      if (!cats.length) {
+        catList.innerHTML = "<li>Aucune opportunité disponible.</li>";
+      } else {
+        var dots = ["blue", "violet", "green", "amber"];
+        catList.innerHTML = cats.slice(0, 5).map(function (c, i) {
+          return "<li><span class='trend-dot " + (dots[i % dots.length]) + "'></span>" +
+            esc(CATEGORY_LABELS[c] || c) + " <strong>(" + counts[c] + ")</strong></li>";
+        }).join("");
+      }
+    }
+
+    // Score moyen
+    var scores = results.map(function (o) { return o.score; }).filter(function (s) { return typeof s === "number"; });
+    var avg = scores.length ? Math.round(scores.reduce(function (a, b) { return a + b; }, 0) / scores.length) : 0;
+    var railScore = $("[data-rail-score]");
+    if (railScore) railScore.textContent = avg + "%";
+    var railPct = $("[data-rail-score-pct]");
+    if (railPct) railPct.textContent = avg + "%";
+    var railBar = $("[data-rail-score-bar]");
+    if (railBar) railBar.style.width = avg + "%";
+    var railText = $("[data-rail-text]");
+    if (railText) {
+      railText.textContent = results.length
+        ? "Compatibilité moyenne calculée depuis votre profil et les " + results.length + " opportunités actives."
+        : "Aucune opportunité ne correspond à votre profil pour le moment.";
+    }
   }
 
   function filteredList() {
@@ -102,7 +127,6 @@
 
     var sort = $("#market-sort") ? $("#market-sort").value : "score";
     list.sort(function (a, b) {
-      if (sort === "growth") return b.growth - a.growth;
       if (sort === "risk") return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
       return b.score - a.score;
     });
@@ -113,7 +137,6 @@
     return {
       search: ($("#market-search") || {}).value ? $("#market-search").value.toLowerCase() : "",
       type: document.querySelector(".filter-chip.is-selected") ? document.querySelector(".filter-chip.is-selected").getAttribute("data-value") : "",
-      growth: ($("#filter-growth") || {}).value || "",
       risk: ($("#filter-risk") || {}).value || ""
     };
   }
@@ -171,9 +194,7 @@
 
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
-    renderCards();
     syncOpportunitiesFromApi();
-    syncWatchlistFromApi();
 
     // Onglets
     document.querySelectorAll(".market-tab").forEach(function (tab) {
@@ -192,28 +213,30 @@
     $("#market-search").addEventListener("input", renderCards);
     $("#market-sort").addEventListener("change", renderCards);
 
-    // Watchlist (délégation) — synchronisée avec l'API si connecté
+    // Watchlist (délégation) — synchronisée avec l'API (jamais localStorage)
     document.addEventListener("click", function (e) {
       var btn = e.target.closest("[data-watch]");
       if (!btn) return;
       var id = btn.getAttribute("data-watch");
+      var realId = id.slice("opp-api-".length);
       var idx = watchlist.indexOf(id);
-      if (idx === -1) {
-        watchlist.push(id);
-        if (window.IntelliApp) window.IntelliApp.showToast("Ajouté à votre watchlist ⭐");
-      } else {
-        watchlist.splice(idx, 1);
-        if (window.IntelliApp) window.IntelliApp.showToast("Retiré de votre watchlist.");
-      }
-      saveWatchlist();
-      // Synchronisation serveur
-      if (window.IntelliAPI && window.IntelliAPI.getToken() && id.indexOf("opp-api-") === 0) {
-        var realId = id.slice("opp-api-".length);
-        var wasSaved = idx === -1;
-        if (wasSaved) window.IntelliAPI.saveOpportunity(realId).catch(function () { /* noop */ });
-        else window.IntelliAPI.unsaveOpportunity(realId).catch(function () { /* noop */ });
-      }
-      renderCards();
+      var wasSaved = idx === -1;
+      var api = window.IntelliAPI && window.IntelliAPI.getToken()
+        ? (wasSaved ? window.IntelliAPI.saveOpportunity(realId) : window.IntelliAPI.unsaveOpportunity(realId))
+        : Promise.resolve();
+      api.then(function () {
+        if (wasSaved) {
+          watchlist.push(id);
+          if (window.IntelliApp) window.IntelliApp.showToast("Ajouté à votre watchlist ⭐");
+        } else {
+          watchlist.splice(idx, 1);
+          if (window.IntelliApp) window.IntelliApp.showToast("Retiré de votre watchlist.");
+        }
+        updateWatchCount();
+        renderCards();
+      }).catch(function (err) {
+        if (window.IntelliApp) window.IntelliApp.showToast("Action impossible : " + ((err && err.message) || "erreur serveur"), "error");
+      });
     });
 
     // Filtres modale
@@ -225,7 +248,6 @@
 
     $("#filters-reset").addEventListener("click", function () {
       document.querySelectorAll(".filter-chip.is-selected").forEach(function (c) { c.classList.remove("is-selected"); });
-      $("#filter-growth").value = "";
       $("#filter-risk").value = "";
       renderCards();
       if (window.IntelliApp) window.IntelliApp.closeModal(document.getElementById("filters-modal"));
@@ -236,23 +258,6 @@
       b.addEventListener("click", renderCards);
     });
 
-    // Charger plus
-    var loadMoreBtn = $("#load-more");
-    if (loadMoreBtn) {
-      loadMoreBtn.addEventListener("click", function () {
-        var before = allOpps.length;
-        allOpps = allOpps.concat(MORE_DATA.filter(function (m) {
-          return allOpps.indexOf(m) === -1;
-        }));
-        renderCards();
-        if (allOpps.length === before) {
-          if (window.IntelliApp) window.IntelliApp.showToast("Toutes les opportunités sont affichées.");
-          loadMoreBtn.disabled = true;
-        } else {
-          if (window.IntelliApp) window.IntelliApp.showToast(allOpps.length - before + " nouvelles opportunités chargées.", "success");
-          loadMoreBtn.textContent = "Charger plus d'opportunités";
-        }
-      });
-    }
+
   });
 })();

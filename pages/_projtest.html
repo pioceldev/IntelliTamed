@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>
+<iframe id="f" src="/pages/projects.html" style="width:1200px;height:800px;border:0"></iframe>
+<div id="result"></div>
+<script>
+localStorage.setItem("intellitamed_jwt", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzg2NzgwNjI4LCJpYXQiOjE3ODY3NTE4MjgsImp0aSI6ImJkNzk5MWE0NTcyNDQ4MzdhYzM1ZDkxYjcxNzY3ZDYzIiwidXNlcl9pZCI6MTd9.KGjOgLzSiU8wLDSxdMcFe0hxfb_x8UC843CnuBndEmg");
+setTimeout(function () {
+  var doc = document.getElementById("f").contentDocument;
+  var input = doc.getElementById("p-due");
+  var r = "CHAMP ABSENT";
+  if (input) r = "type=" + input.type;
+  var btn = doc.getElementById("project-save");
+  if (btn) r += " | bouton save: " + btn.textContent.trim();
+  document.getElementById("result").textContent = r;
+}, 3000);
+</script></body></html>

@@ -115,7 +115,7 @@
         return;
       }
 
-      // État loading → appel API réelle (repli démo si backend injoignable)
+      // État loading → appel API réelle (le backend est obligatoire)
       submit.classList.add("is-loading");
       submit.disabled = true;
 
@@ -126,25 +126,6 @@
         last_name: lastName.value.trim(),
         role: "entrepreneur"
       };
-
-      function registerLocal() {
-        try {
-          var store = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
-          store.profile = {
-            firstName: firstName.value.trim(),
-            lastName: lastName.value.trim(),
-            email: email.value.trim(),
-            role: "Entrepreneur",
-            bio: "",
-            website: "",
-            linkedin: "",
-            avatar: null
-          };
-          localStorage.setItem("intellitamed_store_v1", JSON.stringify(store));
-        } catch (err) { /* stockage indisponible */ }
-        if (window.IntelliApp) IntelliApp.showToast("Compte créé avec succès ! Bienvenue 🎉", "success");
-        setTimeout(function () { window.location.href = "onboarding.html"; }, 900);
-      }
 
       function fail(msg) {
         submit.classList.remove("is-loading");
@@ -157,33 +138,22 @@
         if (window.IntelliApp) IntelliApp.showToast(msg, "error");
       }
 
-      if (window.IntelliAPI) {
-        window.IntelliAPI.register(payload)
-          .then(function () {
-            // Connexion automatique après inscription
-            return window.IntelliAPI.login(payload.email, payload.password);
-          })
-          .then(function () {
-            submit.classList.remove("is-loading");
-            submit.disabled = false;
-            registerLocal();
-          })
-          .catch(function (err) {
-            submit.classList.remove("is-loading");
-            submit.disabled = false;
-            if (err && (err.status === 400 || err.status === 401 || err.status === 403)) {
-              // Vraie erreur API : email déjà pris, mot de passe invalide, etc.
-              fail(apiErrorMessage(err));
-            } else {
-              // Backend injoignable → repli local (hors-ligne)
-              registerLocal();
-            }
-          });
-      } else {
-        submit.classList.remove("is-loading");
-        submit.disabled = false;
-        registerLocal();
-      }
+      window.IntelliAPI.register(payload)
+        .then(function () {
+          // Connexion automatique après inscription
+          return window.IntelliAPI.login(payload.email, payload.password);
+        })
+        .then(function () {
+          submit.classList.remove("is-loading");
+          submit.disabled = false;
+          if (window.IntelliApp) IntelliApp.showToast("Compte créé avec succès ! Bienvenue 🎉", "success");
+          setTimeout(function () { window.location.href = "onboarding.html"; }, 900);
+        })
+        .catch(function (err) {
+          submit.classList.remove("is-loading");
+          submit.disabled = false;
+          fail(apiErrorMessage(err));
+        });
     });
   }
 
@@ -225,11 +195,6 @@
       submit.classList.add("is-loading");
       submit.disabled = true;
 
-      function loginLocal() {
-        if (window.IntelliApp) IntelliApp.showToast("Connexion réussie. Bon retour parmi nous !", "success");
-        setTimeout(function () { window.location.href = "dashboard.html"; }, 700);
-      }
-
       function fail(msg) {
         submit.classList.remove("is-loading");
         submit.disabled = false;
@@ -241,31 +206,18 @@
         if (window.IntelliApp) IntelliApp.showToast(msg, "error");
       }
 
-      if (window.IntelliAPI) {
-        window.IntelliAPI.login(email.value.trim(), password.value).then(function (data) {
-          // Sauvegarde du profil utilisateur pour la topbar
-          window.IntelliAPI.me().then(function (user) {
-            if (user) window.IntelliAPI.setUser(user);
-          }).catch(function () {});
-          submit.classList.remove("is-loading");
-          submit.disabled = false;
-          loginLocal();
-        }).catch(function (err) {
-          if (err && (err.status === 400 || err.status === 401)) {
-            // Mauvaises identifiants → vraie erreur
-            fail(err.message || "Identifiants incorrects.");
-          } else {
-            // Backend injoignable → mode démo
-            submit.classList.remove("is-loading");
-            submit.disabled = false;
-            loginLocal();
-          }
-        });
-      } else {
+      window.IntelliAPI.login(email.value.trim(), password.value).then(function () {
+        // Sauvegarde du profil utilisateur pour la topbar
+        window.IntelliAPI.me().then(function (user) {
+          if (user) window.IntelliAPI.setUser(user);
+        }).catch(function () {});
         submit.classList.remove("is-loading");
         submit.disabled = false;
-        loginLocal();
-      }
+        if (window.IntelliApp) IntelliApp.showToast("Connexion réussie. Bon retour parmi nous !", "success");
+        setTimeout(function () { window.location.href = "dashboard.html"; }, 700);
+      }).catch(function (err) {
+        fail(err.message || "Identifiants incorrects.");
+      });
     });
   }
 

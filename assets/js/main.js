@@ -4,7 +4,6 @@
    - Sidebar mobile, menu utilisateur
    - Toasts, modales
    - Rendu auto des graphiques [data-chart]
-   - Store localStorage (données de démo persistantes)
    ============================================================ */
 
 (function (global) {
@@ -274,59 +273,12 @@
     }
   }
 
-  /* ---------- Store (démo, localStorage) ---------- */
-  var STORE_KEY = "intellitamed_store_v1";
-
-  // Données initiales VIDE — plus aucune donnée statique/démo.
-  // Les pages se remplissent via l'API (assets/js/api.js) ;
-  // en l'absence de backend, elles affichent leurs états vides.
-  var DEFAULTS = {
-    profile: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      bio: "",
-      website: "",
-      linkedin: "",
-      avatar: null
-    },
-    projects: [],
-    tasks: {},
-    conversations: [],
-    watchlist: [],
-    onboarding: null
-  };
-
-  function loadStore() {
-    try {
-      var raw = localStorage.getItem(STORE_KEY);
-      if (!raw) return JSON.parse(JSON.stringify(DEFAULTS));
-      var data = JSON.parse(raw);
-      // fusion avec les défauts
-      Object.keys(DEFAULTS).forEach(function (k) {
-        if (data[k] === undefined) data[k] = JSON.parse(JSON.stringify(DEFAULTS[k]));
-      });
-      return data;
-    } catch (e) {
-      return JSON.parse(JSON.stringify(DEFAULTS));
-    }
-  }
-
-  function saveStore(store) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* stockage indisponible */ }
-  }
-
-  function resetStore() {
-    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-  }
-
+  /* ---------- IntelliApp : API publique (plus de store localStorage) ----------
+     Toutes les données proviennent du backend Django via assets/js/api.js.
+     Le store local a été supprimé : plus aucune donnée de démo/mockée. */
   global.IntelliApp = {
     showToast: showToast,
     openModal: openModal,
-    closeModal: closeModal,
-    loadStore: loadStore,
-    saveStore: saveStore,
-    resetStore: resetStore
+    closeModal: closeModal
   };
 })(window);

@@ -13,11 +13,11 @@ IntelliTamed est une plateforme mondiale utilisant l'IA pour aider les entrepren
 │   ├── css/                Styles (base, ui, app + 1 fichier par interface)
 │   ├── js/                 Composants, charts SVG, API, logique des pages
 │   └── images/
-├── backend/                Backend Django REST Framework (API + Gemini + PostgreSQL)
+├── backend/                Backend Django REST Framework (API + Gemini + MySQL/PostgreSQL)
 │   ├── apps/               accounts, projects, ai, action_plans, opportunities, …
-│   ├── database/schema.sql Schéma SQL de la base
+│   ├── database/           Schémas SQL (schema.sql SQLite, schema_mysql.sql MySQL/phpMyAdmin)
 │   └── README.md           Documentation complète du backend
-└── server/                 Ancien proxy Node (optionnel, remplacé par le backend Django)
+└── pages/ + assets/        Frontend 100% dynamique (aucune donnée statique)
 ```
 
 ---
@@ -88,9 +88,24 @@ Les boutons **Google** et **GitHub** des pages inscription/connexion redirigent 
 GEMINI_API_KEY=AIza...
 ```
 
-La clé vit **uniquement** côté serveur, jamais dans le frontend. Sans clé, l'assistant bascule en « Mode démo ».
+La clé vit **uniquement** côté serveur, jamais dans le frontend. Sans clé, l'assistant affiche une erreur claire (aucune réponse simulée).
 
-### 5. Mode statique (frontend seul, sans backend)
+### 5. Emails transactionnels (Brevo)
+
+Les emails (bienvenue à l'inscription, réinitialisation de mot de passe) sont envoyés via **Brevo** (ex-Sendinblue) :
+
+1. Crée un compte sur https://app.brevo.com → *Settings → API Keys* → copie la clé
+2. Ajoute-la dans `backend/.env` :
+
+```
+BREVO_API_KEY=xkeysib-...
+BREVO_SENDER_EMAIL=no-reply@votredomaine.com   # expéditeur vérifié dans Brevo
+BREVO_SENDER_NAME=IntelliTamed
+```
+
+Sans clé configurée, les emails sont journalisés en console et, en développement (`DEBUG=True`), le code de réinitialisation est renvoyé directement par l'API pour tester le flux. En production sans clé, aucun email n'est envoyé.
+
+### 6. Mode statique (frontend seul, sans backend)
 
 Ouvre simplement `index.html` dans le navigateur, ou :
 
@@ -110,8 +125,9 @@ python -m http.server 8000
 | POST | `/api/auth/login` | Connexion → JWT |
 | POST | `/api/auth/password-reset` | Mot de passe oublié (code renvoyé en dev) |
 | POST | `/api/auth/password-reset/confirm` | Réinitialisation avec le code |
-| GET/PUT | `/api/auth/profile` | Profil |
+| GET/PUT | `/api/auth/profile` | Profil (dont préférences `ai_preferences`) |
 | POST | `/api/auth/onboarding` | Onboarding |
+| GET | `/api/auth/dashboard` | Statistiques réelles du dashboard |
 | GET/POST | `/api/projects/` | Projets (CRUD) |
 | POST | `/api/projects/{id}/analyze/` | Analyse Gemini (SWOT structuré) |
 | POST | `/api/assistant` | Message → réponse Gemini |
@@ -119,7 +135,7 @@ python -m http.server 8000
 | GET | `/api/action-plans/` | Plans d'action (progression auto) |
 | POST | `/api/action-plans/generate/` | Générer un plan avec Gemini depuis un projet |
 | GET/POST | `/api/action-plans/{id}/steps/` | Étapes du plan (CRUD) |
-| GET | `/api/opportunities/` | Opportunités |
+| GET | `/api/opportunities/` | Opportunités (score de compatibilité calculé depuis le profil) |
 | POST/DELETE | `/api/opportunities/{id}/save/` | Watchlist (sauvegarder / retirer) |
 | GET | `/api/watchlist/` | Opportunités sauvegardées |
 | GET | `/api/notifications/` | Notifications (+ `/read/`, `/read_all/`, `/unread_count/`) |

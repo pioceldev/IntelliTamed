@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <!-- Statistiques -->
+      <!-- Statistiques (chargées dynamiquement depuis l'API) -->
       <div class="grid-stats">
         <div class="stat-card">
           <div class="stat-label">
@@ -53,9 +53,9 @@
             </span>
             Projets Actifs
           </div>
-          <div class="stat-value">4</div>
-          <span class="stat-delta up">▲ +1 ce mois-ci</span>
-          <span class="stat-sub">2 en développement · 1 planifié · 1 en retard</span>
+          <div class="stat-value" data-stat="active_projects">—</div>
+          <span class="stat-delta up" data-stat-sub="active_projects_sub">Chargement…</span>
+          <span class="stat-sub" data-stat-sub="active_projects_detail"></span>
         </div>
 
         <div class="stat-card">
@@ -63,11 +63,11 @@
             <span class="stat-icon violet">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             </span>
-            Venture Score
+            Progression moyenne
           </div>
-          <div class="stat-value">84<small>/100</small></div>
-          <span class="stat-delta up">▲ +12% vs mois dernier</span>
-          <div class="stat-ring"><div data-chart='{"type":"ring","percent":84,"size":76,"thickness":7}'></div></div>
+          <div class="stat-value"><span data-stat="avg_progress">—</span><small>/100</small></div>
+          <span class="stat-delta up" data-stat-sub="avg_progress_sub">Chargement…</span>
+          <div class="stat-ring"><div data-chart-ring data-percent="0"></div></div>
         </div>
 
         <div class="stat-card">
@@ -75,11 +75,11 @@
             <span class="stat-icon green">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             </span>
-            Revenu Estimé
+            Conversations IA
           </div>
-          <div class="stat-value">12 450 €</div>
-          <span class="stat-delta up">▲ +8,2% mensuel récurrent</span>
-          <span class="stat-sub">Projection basée sur vos projets actifs</span>
+          <div class="stat-value" data-stat="conversations">—</div>
+          <span class="stat-delta up" data-stat-sub="conversations_sub">Chargement…</span>
+          <span class="stat-sub">Sessions avec votre assistant</span>
         </div>
 
         <div class="stat-card">
@@ -87,11 +87,11 @@
             <span class="stat-icon amber">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             </span>
-            Utilisateurs Alpha
+            Notifications non lues
           </div>
-          <div class="stat-value">1 204</div>
-          <span class="stat-delta down">▼ -2,4% engagement hebdo</span>
-          <span class="stat-sub">Programme bêta fermé</span>
+          <div class="stat-value" data-stat="unread_notifications">—</div>
+          <span class="stat-delta up" data-stat-sub="notif_sub">Chargement…</span>
+          <span class="stat-sub">À traiter dans votre espace</span>
         </div>
       </div>
 
@@ -110,26 +110,8 @@
               </span>
             </div>
             <div class="card-body">
-              <div class="ai-insight">
-                <p>
-                  Votre projet <strong>« EcoCharge »</strong> montre un potentiel de croissance de
-                  <strong>24%</strong> sur le marché français d'ici le prochain trimestre.
-                </p>
-                <div class="ai-insight-tags">
-                  <span class="chip chip-blue">
-                    <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                    Opportunité
-                  </span>
-                  <span>Nouveau segment B2B identifié</span>
-                </div>
-                <div class="ai-insight-tags">
-                  <span class="chip chip-violet">
-                    <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Efficacité
-                  </span>
-                  <span>+15% de productivité estimée</span>
-                </div>
-                <a class="btn btn-secondary btn-sm" href="project-analysis.html">Voir les recommandations</a>
+              <div class="ai-insight" data-ai-insight>
+                <p>Chargement de votre analyse…</p>
               </div>
             </div>
           </section>
@@ -139,64 +121,35 @@
             <div class="card-header">
               <div>
                 <h2 class="card-title">Performance des Projets</h2>
-                <p class="card-subtitle">Engagement vs Conversion (Derniers 6 mois)</p>
+                <p class="card-subtitle" data-chart-subtitle>Progression par projet</p>
               </div>
               <div class="chart-legend">
-                <span><i class="dot engagement"></i>Engagement</span>
-                <span><i class="dot conversion"></i>Conversion</span>
+                <span><i class="dot engagement"></i>Progression</span>
               </div>
             </div>
             <div class="card-body">
-              <div data-chart='{"type":"line","height":280,"labels":["Jan","Fév","Mar","Avr","Mai","Juin"],"series":[{"name":"Engagement","color":"#2563EB","data":[42,48,44,56,62,68]},{"name":"Conversion","color":"#7C3AED","data":[28,32,30,38,42,47]}]}'></div>
+              <div data-chart-live></div>
             </div>
           </section>
         </div>
 
         <!-- Colonne droite -->
         <aside class="dashboard-side">
-          <!-- Plan d'action -->
+          <!-- Plan d'action (dynamique depuis l'API) -->
           <section class="card">
             <div class="card-header">
               <div>
                 <h2 class="card-title">Plan d'action</h2>
-                <p class="card-subtitle"><span data-action-done>3</span>/5 complétés</p>
+                <p class="card-subtitle"><span data-action-done>0</span>/<span data-action-total>0</span> complétés</p>
               </div>
-              <span class="chip chip-blue">45%</span>
+              <span class="chip chip-blue" data-plan-chip>0%</span>
             </div>
             <div class="card-body">
-              <div class="progress" style="margin-bottom:16px;"><div class="progress-bar" style="width:60%"></div></div>
+              <div class="progress" style="margin-bottom:16px;"><div class="progress-bar" data-plan-bar style="width:0%"></div></div>
               <ul class="task-mini-list" data-action-tasks>
-                <li>
-                  <label class="task-mini">
-                    <input type="checkbox" checked data-task-item>
-                    <span class="task-mini-check">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </span>
-                    <span class="task-mini-text">Lancer la campagne beta</span>
-                    <span class="chip chip-green">Terminé</span>
-                  </label>
-                </li>
-                <li>
-                  <label class="task-mini">
-                    <input type="checkbox" checked data-task-item>
-                    <span class="task-mini-check">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </span>
-                    <span class="task-mini-text">Revue de l'analyse de marché</span>
-                    <span class="chip chip-blue">En cours</span>
-                  </label>
-                </li>
-                <li>
-                  <label class="task-mini">
-                    <input type="checkbox" data-task-item>
-                    <span class="task-mini-check">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </span>
-                    <span class="task-mini-text">Recruter le CTO</span>
-                  </label>
-                </li>
+                <li><p class="roadmap-empty">Aucun plan d'action pour le moment.</p></li>
               </ul>
-              <a class="btn btn-ghost btn-sm btn-block" href="action-plan.html">Voir toutes les tâches</a>
+              <a class="btn btn-ghost btn-sm btn-block" href="action-plan.html">Voir le plan d'action</a>
             </div>
           </section>
 
@@ -241,81 +194,7 @@
         <div class="table-wrap">
           <table class="table activity-table">
             <tbody data-activity-list>
-              <tr>
-                <td>
-                  <div class="activity-item">
-                    <span class="activity-icon blue">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <div>
-                      <strong>Analyse de Sentiment Client</strong>
-                      <span>EcoCharge · Insight IA généré</span>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="badge-status badge-done">Terminé</span></td>
-                <td class="activity-time">Il y a 2h</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="activity-item">
-                    <span class="activity-icon violet">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-                    </span>
-                    <div>
-                      <strong>Prévisions Financières T3</strong>
-                      <span>IntelliStream · Rapport généré</span>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="badge-status badge-in-progress">En cours</span></td>
-                <td class="activity-time">Hier, 16:45</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="activity-item">
-                    <span class="activity-icon green">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <div>
-                      <strong>Recherche de Partenariats</strong>
-                      <span>EcoCharge · 3 opportunités trouvées</span>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="badge-status badge-planned">En attente</span></td>
-                <td class="activity-time">Hier, 10:20</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="activity-item">
-                    <span class="activity-icon amber">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </span>
-                    <div>
-                      <strong>Validation Technique MVP</strong>
-                      <span>HealthScan AI · Étude de faisabilité</span>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="badge-status badge-done">Terminé</span></td>
-                <td class="activity-time">22 Mai 2024</td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="activity-item">
-                    <span class="activity-icon blue">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    </span>
-                    <div>
-                      <strong>Mise à jour du Pitch Deck</strong>
-                      <span>EcoCharge · Version 3.2</span>
-                    </div>
-                  </div>
-                </td>
-                <td><span class="badge-status badge-done">Terminé</span></td>
-                <td class="activity-time">21 Mai 2024</td>
-              </tr>
+              <tr><td><p class="roadmap-empty">Chargement de votre activité…</p></td></tr>
             </tbody>
           </table>
         </div>
