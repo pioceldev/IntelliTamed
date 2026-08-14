@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyse de projet — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/analysis.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="analysis"></div>
+
+    <div class="app-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Analyse IA"></header>
+
+      <!-- En-tête -->
+      <div class="analysis-header">
+        <div>
+          <span class="chip chip-green analysis-live">
+            <span class="live-dot"></span> Analyse Active · Mis à jour il y a 2 minutes
+          </span>
+          <h1 class="page-title" style="margin-top:10px;">Evolve-SaaS v2</h1>
+          <p class="page-description">
+            Notre moteur d'IA a traité plus de 450 points de données du marché pour générer ce rapport stratégique.
+            Explorez les insights de croissance, la concurrence et les recommandations d'exécution.
+          </p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-toast="Export du rapport en cours…">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </span>
+            Exporter le Rapport
+          </button>
+          <button class="btn btn-primary" type="button" id="gemini-analyze">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            Analyser avec Gemini
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-label">Indice de Validation</div>
+          <div class="stat-value">84,5<small>%</small></div>
+          <span class="stat-delta up">▲ +4,2% vs mois dernier</span>
+          <div class="analysis-ring"><div data-chart='{"type":"ring","percent":84.5,"size":84,"thickness":8}'></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Opportunité Marché</div>
+          <div class="stat-value">1,2 B<span style="font-size:1rem;">€</span></div>
+          <span class="stat-delta up">▲ +12% vs mois dernier</span>
+          <span class="stat-sub">TAM · Adressable à 3 ans</span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Complexité Technique</div>
+          <div class="stat-value">Modérée</div>
+          <span class="stat-delta down">▼ -5% vs mois dernier</span>
+          <div class="complexity-bars">
+            <span class="bar" style="height:55%"></span>
+            <span class="bar" style="height:70%"></span>
+            <span class="bar" style="height:48%"></span>
+            <span class="bar" style="height:62%"></span>
+            <span class="bar" style="height:40%"></span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Score de Risque</div>
+          <div class="stat-value" style="color:var(--success);">Faible</div>
+          <span class="stat-delta down">▼ -2,1% vs mois dernier</span>
+          <div class="risk-gauge">
+            <div class="progress"><div class="progress-bar green" style="width:22%"></div></div>
+            <span>Niveau 2/10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglets -->
+      <div class="tabs" role="tablist" aria-label="Vues de l'analyse">
+        <button class="tab-btn is-active" type="button" role="tab" data-tab="overview" aria-selected="true">Vue d'ensemble</button>
+        <button class="tab-btn" type="button" role="tab" data-tab="market" aria-selected="false">Analyse Marché</button>
+        <button class="tab-btn" type="button" role="tab" data-tab="competition" aria-selected="false">Compétition</button>
+        <button class="tab-btn" type="button" role="tab" data-tab="swot" aria-selected="false">Risques &amp; SWOT</button>
+      </div>
+
+      <!-- ============ VUE D'ENSEMBLE ============ -->
+      <div class="tab-panel is-active" data-panel="overview">
+        <div class="analysis-grid">
+          <div class="analysis-main">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Tendances de Croissance du Secteur</h2>
+                  <p class="card-subtitle">Projection basée sur les 7 derniers mois d'activité</p>
+                </div>
+                <span class="chip chip-blue">Croissance</span>
+              </div>
+              <div class="card-body">
+                <div data-chart='{"type":"line","height":280,"labels":["Jan","Fév","Mar","Avr","Mai","Juin"],"series":[{"name":"Croissance","color":"#2563EB","data":[25,32,38,52,61,74]}]}'></div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="analysis-side">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Répartition SWOT</h2>
+                  <p class="card-subtitle">Analyse synthétique de votre projet</p>
+                </div>
+              </div>
+              <div class="card-body swot-list">
+                <div class="swot-row">
+                  <span class="swot-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    Forces
+                  </span>
+                  <div class="progress"><div class="progress-bar green" style="width:82%"></div></div>
+                  <strong>82%</strong>
+                </div>
+                <div class="swot-row">
+                  <span class="swot-label amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+                    Faiblesses
+                  </span>
+                  <div class="progress"><div class="progress-bar amber" style="width:46%"></div></div>
+                  <strong>46%</strong>
+                </div>
+                <div class="swot-row">
+                  <span class="swot-label blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                    Opportunités
+                  </span>
+                  <div class="progress"><div class="progress-bar" style="width:71%"></div></div>
+                  <strong>71%</strong>
+                </div>
+                <div class="swot-row">
+                  <span class="swot-label red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Menaces
+                  </span>
+                  <div class="progress"><div class="progress-bar" style="width:34%;background:var(--error);"></div></div>
+                  <strong>34%</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Part de Marché Estimée</h2>
+                  <p class="card-subtitle">Répartition actuelle du secteur</p>
+                </div>
+              </div>
+              <div class="card-body market-share">
+                <div data-chart='{"type":"donut","size":190,"centerLabel":"62%","centerSub":"Vous","segments":[{"label":"IntelliTamed","value":62,"color":"#2563EB"},{"label":"Concurrent A","value":18,"color":"#7C3AED"},{"label":"Concurrent B","value":12,"color":"#94A3B8"},{"label":"Autres","value":8,"color":"#CBD5E1"}]}'></div>
+                <ul class="market-legend">
+                  <li><span class="legend-dot" style="background:#2563EB;"></span>IntelliTamed <strong>62%</strong></li>
+                  <li><span class="legend-dot" style="background:#7C3AED;"></span>Concurrent A <strong>18%</strong></li>
+                  <li><span class="legend-dot" style="background:#94A3B8;"></span>Concurrent B <strong>12%</strong></li>
+                  <li><span class="legend-dot" style="background:#CBD5E1;"></span>Autres <strong>8%</strong></li>
+                </ul>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ============ ANALYSE MARCHÉ ============ -->
+      <div class="tab-panel" data-panel="market" hidden>
+        <div class="analysis-grid">
+          <div class="analysis-main">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Croissance du Marché SaaS B2B</h2>
+                  <p class="card-subtitle">Valeur du marché en milliards d'euros (projection)</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div data-chart='{"type":"line","height":300,"labels":["2022","2023","2024","2025","2026"],"series":[{"name":"Marché total","color":"#3B82F6","data":[18,23,29,37,46]},{"name":"Votre segment","color":"#7C3AED","data":[6,8,11,15,20]}]}'></div>
+              </div>
+            </section>
+          </div>
+          <aside class="analysis-side">
+            <section class="card">
+              <div class="card-header">
+                <div><h2 class="card-title">Segments porteurs</h2><p class="card-subtitle">Classés par potentiel</p></div>
+              </div>
+              <div class="card-body segment-list">
+                <div class="segment-item">
+                  <span class="chip chip-green">N°1</span>
+                  <div><strong>PME & ETI</strong><span>Croissance +24%/an · CAC 34 €</span></div>
+                  <b>92%</b>
+                </div>
+                <div class="segment-item">
+                  <span class="chip chip-blue">N°2</span>
+                  <div><strong>Startups tech</strong><span>Croissance +19%/an · CAC 41 €</span></div>
+                  <b>78%</b>
+                </div>
+                <div class="segment-item">
+                  <span class="chip chip-amber">N°3</span>
+                  <div><strong>Freelances</strong><span>Croissance +11%/an · CAC 27 €</span></div>
+                  <b>63%</b>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ============ COMPÉTITION ============ -->
+      <div class="tab-panel" data-panel="competition" hidden>
+        <div class="analysis-grid">
+          <div class="analysis-main">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Comparatif Concurrentiel</h2>
+                  <p class="card-subtitle">Score global (0-100) par axe stratégique</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div data-chart='{"type":"line","height":300,"labels":["Produit","Pricing","Distribution","Support","Marque"],"series":[{"name":"Votre projet","color":"#2563EB","data":[72,64,58,70,62]},{"name":"Concurrent A","color":"#7C3AED","data":[68,70,62,55,75]},{"name":"Concurrent B","color":"#94A3B8","data":[55,60,66,48,52]}]}'></div>
+              </div>
+            </section>
+          </div>
+          <aside class="analysis-side">
+            <section class="card">
+              <div class="card-header">
+                <div><h2 class="card-title">Positionnement</h2><p class="card-subtitle">Vos avantages compétitifs</p></div>
+              </div>
+              <div class="card-body">
+                <ul class="check-list">
+                  <li><span class="check-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Proposition de valeur unique claire</li>
+                  <li><span class="check-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Délai de mise sur le marché -2 mois</li>
+                  <li><span class="check-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Expérience produit supérieure</li>
+                </ul>
+                <div class="competition-note">
+                  <strong>À surveiller</strong>
+                  <p>Le Concurrent A investit massivement en marketing. Réagissez sur le contenu éducatif pour défendre votre segment.</p>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ============ RISQUES & SWOT ============ -->
+      <div class="tab-panel" data-panel="swot" hidden>
+        <div class="swot-grid">
+          <div class="swot-card strengths">
+            <h3>Forces</h3>
+            <ul>
+              <li>Technologie différenciante, protégée par 2 brevets</li>
+              <li>Équipe expérimentée (15 ans cumulés)</li>
+              <li>Modèle économique validé par 12 pilotes</li>
+            </ul>
+          </div>
+          <div class="swot-card weaknesses">
+            <h3>Faiblesses</h3>
+            <ul>
+              <li>Dépendance à 2 fournisseurs clés</li>
+              <li>Notoriété de marque encore faible</li>
+              <li>Processus de vente long (45 jours)</li>
+            </ul>
+          </div>
+          <div class="swot-card opportunities">
+            <h3>Opportunités</h3>
+            <ul>
+              <li>Nouveau segment B2B en Allemagne (score 92%)</li>
+              <li>Partenariat potentiel avec 2 intégrateurs majeurs</li>
+              <li>Demande croissante de conformité automatisée</li>
+            </ul>
+          </div>
+          <div class="swot-card threats">
+            <h3>Menaces</h3>
+            <ul>
+              <li>Entrée d'un acteur international sur le marché</li>
+              <li>Évolution réglementaire RGPD à anticiper</li>
+              <li>Inflation des coûts d'acquisition publicitaire</li>
+            </ul>
+          </div>
+        </div>
+        <div class="risk-matrix card">
+          <div class="card-header">
+            <div><h2 class="card-title">Matrice des Risques</h2><p class="card-subtitle">Probabilité vs impact</p></div>
+          </div>
+          <div class="card-body">
+            <div data-chart='{"type":"bars","height":240,"labels":["Risque marché","Risque tech","Risque équipe","Risque légal","Risque financier"],"values":[62,45,30,38,54]}'></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ INSIGHTS & PROCHAINES ÉTAPES ============ -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Recommandations stratégiques</h2>
+            <p class="card-subtitle">Générées par le moteur d'Insights IA</p>
+          </div>
+          <span class="chip chip-violet">Insights IA</span>
+        </div>
+        <div class="card-body insights-grid">
+          <article class="insight-card high">
+            <div class="insight-head">
+              <span class="chip chip-red">Priorité Haute</span>
+              <span class="insight-type">Pivot Opportuniste</span>
+            </div>
+            <p>Le segment B2B montre une traction <strong>30% plus élevée</strong> que le B2C sur ce créneau. Envisagez de concentrer vos ressources sur les offres entreprises.</p>
+          </article>
+          <article class="insight-card">
+            <div class="insight-head">
+              <span class="chip chip-blue">Nouveau</span>
+              <span class="insight-type">Optimisation Pricing</span>
+            </div>
+            <p>Vos concurrents utilisent un modèle de tarification basé sur l'usage. Une transition vers ce modèle pourrait <strong>augmenter le LTV de 15%</strong>.</p>
+          </article>
+          <article class="insight-card warn">
+            <div class="insight-head">
+              <span class="chip chip-amber">Alerte</span>
+              <span class="insight-type">Rétention</span>
+            </div>
+            <p>Les données indiquent un <strong>risque de churn accru au 3ème mois</strong>. Améliorez l'onboarding technique pour stabiliser l'usage.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Prochaines étapes -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Prochaines Étapes</h2>
+            <p class="card-subtitle">Cochez les actions que vous validez</p>
+          </div>
+        </div>
+        <div class="card-body next-steps">
+          <label class="next-step">
+            <input type="checkbox">
+            <span class="next-step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <div>
+              <strong>Validation du Business Plan</strong>
+              <p>Revoyez les projections financières basées sur les nouveaux insights de marché.</p>
+            </div>
+            <span class="chip chip-gray">2h</span>
+          </label>
+          <label class="next-step">
+            <input type="checkbox">
+            <span class="next-step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <div>
+              <strong>Prototype Technique</strong>
+              <p>Développer le prototype de l'interface selon les spécifications validées.</p>
+            </div>
+            <span class="chip chip-gray">12h</span>
+          </label>
+          <label class="next-step">
+            <input type="checkbox">
+            <span class="next-step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <div>
+              <strong>Étude de Marché Complète</strong>
+              <p>Approfondir l'étude sur le segment B2B allemand identifié par l'IA.</p>
+            </div>
+            <span class="chip chip-gray">6h</span>
+          </label>
+          <div class="next-steps-progress">
+            <span id="next-steps-count">0/3 validées</span>
+            <div class="progress" style="flex:1;"><div class="progress-bar" id="next-steps-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA analyse approfondie -->
+      <section class="analysis-cta card">
+        <div class="analysis-cta-copy">
+          <h2>Besoin d'une analyse plus poussée ?</h2>
+          <p>Parlez directement à notre IA experte pour affiner votre stratégie de projet.</p>
+        </div>
+        <div class="analysis-cta-actions">
+          <a class="btn btn-secondary" href="#" data-toast="Centre d'aide — démonstration frontend.">Consulter l'aide</a>
+          <a class="btn btn-primary" href="assistant.html">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            Ouvrir l'Assistant IA
+          </a>
+        </div>
+      </section>
+
+      <div data-inject="app-footer" data-left="© 2024 IntelliTamed — Analyse de Projet de Haute Précision" data-extra='<span class="chip chip-green"><span class="live-dot"></span>Serveurs IA en ligne</span>'></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/analysis.js"></script>
+</body>
+</html>

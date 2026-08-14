@@ -1,0 +1,328 @@
+/* ============================================================
+   IntelliTamed — Dashboard
+   ============================================================ */
+
+.stat-value small {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--secondary-text);
+}
+
+.stat-sub {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+.stat-ring {
+  margin-top: var(--space-2);
+}
+
+.stat-ring svg {
+  margin-inline: auto;
+}
+
+.select-wrap select {
+  width: auto;
+  padding-block: 0.5rem;
+  font-weight: 600;
+}
+
+/* ---------- Grille principale ---------- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dashboard-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ---------- Vue d'ensemble IA ---------- */
+.ai-overview .card-header {
+  border-bottom-color: var(--border-light);
+}
+
+.live-chip {
+  gap: var(--space-2);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.ai-insight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-insight p {
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+.ai-insight p strong {
+  color: var(--electric-blue);
+}
+
+.ai-insight-tags {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--dark-text);
+}
+
+.ai-insight-tags .chip {
+  flex-shrink: 0;
+}
+
+.ai-insight .btn {
+  align-self: flex-start;
+  margin-top: var(--space-1);
+}
+
+/* ---------- Légende graphique ---------- */
+.chart-legend {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.chart-legend .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.chart-legend .dot.engagement { background: var(--electric-blue); }
+.chart-legend .dot.conversion { background: var(--violet); }
+
+/* ---------- Tâches mini ---------- */
+.task-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.task-mini {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.task-mini input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.task-mini-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 6px;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.task-mini-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+.task-mini input:checked + .task-mini-check {
+  background: var(--electric-blue);
+  border-color: var(--electric-blue);
+  color: #fff;
+}
+
+.task-mini-text {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--dark-text);
+}
+
+.task-mini input:checked ~ .task-mini-text {
+  text-decoration: line-through;
+  color: var(--secondary-text);
+}
+
+/* ---------- Carte assistant ---------- */
+.ai-help-card {
+  background: linear-gradient(160deg, #0B1020, #14204A);
+  border-color: transparent;
+}
+
+.ai-help-card .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.ai-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: rgba(59, 130, 246, 0.2);
+  color: #93C5FD;
+}
+
+.ai-help-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.ai-help-card h3 {
+  color: var(--white);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.ai-help-card p {
+  font-size: var(--font-size-sm);
+  color: #A5B4CF;
+  line-height: 1.6;
+}
+
+.ai-help-card .btn {
+  width: 100%;
+}
+
+/* ---------- Export ---------- */
+.export-card .export-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.export-row strong {
+  font-size: var(--font-size-sm);
+  display: block;
+}
+
+.export-row p {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+  margin-top: 2px;
+}
+
+/* ---------- Activité récente ---------- */
+.activity-table td {
+  padding-block: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.activity-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.activity-icon.blue { background: var(--blue-soft); color: var(--electric-blue); }
+.activity-icon.violet { background: var(--violet-soft); color: var(--violet); }
+.activity-icon.green { background: var(--success-soft); color: var(--success); }
+.activity-icon.amber { background: #FEF3C7; color: #B45309; }
+
+.activity-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.activity-item strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.activity-item span {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+.activity-time {
+  font-size: var(--font-size-xs) !important;
+  color: var(--secondary-text);
+  white-space: nowrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .activity-table thead {
+    display: none;
+  }
+
+  .activity-table,
+  .activity-table tbody,
+  .activity-table tr,
+  .activity-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .activity-table tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .activity-table td {
+    border: none;
+    padding: 0.25rem 0;
+  }
+
+  .activity-time {
+    padding-left: calc(38px + var(--space-3));
+  }
+}

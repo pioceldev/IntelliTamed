@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — IntelliTamed</title>
+  <meta name="description" content="Accédez à votre espace de travail IntelliTamed.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-body">
+
+  <div class="auth-layout">
+
+    <!-- Panneau gauche : pitch -->
+    <aside class="auth-brand-panel">
+      <div class="auth-brand-top">
+        <a class="brand" href="../index.html" aria-label="IntelliTamed — accueil">
+          <span class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          </span>
+          <span class="brand-name">IntelliTamed</span>
+        </a>
+      </div>
+
+      <div class="auth-brand-content">
+        <h1>Propulsez votre vision <span class="grad-text">entrepreneuriale avec l'IA</span></h1>
+        <p>Rejoignez des milliers d'entrepreneurs qui utilisent IntelliTamed pour valider, construire et faire évoluer leurs projets avec une précision chirurgicale.</p>
+
+        <div class="auth-features">
+          <div class="auth-feature">
+            <span class="auth-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+            </span>
+            <div>
+              <strong>Analyses IA en temps réel</strong>
+              <span>Des insights stratégiques basés sur des millions de points de données.</span>
+            </div>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </span>
+            <div>
+              <strong>Validation de marché</strong>
+              <span>Évaluez la viabilité de votre idée avant d'investir.</span>
+            </div>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <div>
+              <strong>Gestion de projet agile</strong>
+              <span>Plans d'action, jalons et suivi de progression guidés par l'IA.</span>
+            </div>
+          </div>
+          <div class="auth-feature">
+            <span class="auth-feature-icon violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </span>
+            <div>
+              <strong>Opportunités de croissance</strong>
+              <span>Emplois, financements, incubateurs et partenariats sur mesure.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-brand-bottom">
+        <div class="auth-social-proof">
+          <div class="auth-avatars">
+            <span class="avatar">SL</span>
+            <span class="avatar">MK</span>
+            <span class="avatar">AC</span>
+            <span class="avatar">+</span>
+          </div>
+          <span><strong>+500 entrepreneurs</strong> nous font déjà confiance.</span>
+        </div>
+        <p class="auth-press">Hébergement sécurisé · TechCrunch · Forbes · Wired</p>
+      </div>
+    </aside>
+
+    <!-- Panneau droit : formulaire -->
+    <main class="auth-form-panel">
+      <div class="auth-form-wrap">
+        <div class="auth-form-head">
+          <h2>Bon retour parmi nous</h2>
+          <p>Veuillez entrer vos identifiants pour accéder à votre espace de travail.</p>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="email">Adresse e-mail</label>
+            <div class="input-wrap">
+              <span class="input-icon-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>
+              </span>
+              <input class="form-input" type="email" id="email" name="email" placeholder="nom@entreprise.com" autocomplete="email" value="jean.dupont@intellitamed.io">
+            </div>
+            <p class="form-error" data-error-for="email"></p>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <label class="form-label" for="password" style="margin-bottom:0;">Mot de passe</label>
+              <a class="forgot-link" href="#" data-modal-open="#forgot-modal">Mot de passe oublié ?</a>
+            </div>
+            <div class="input-wrap">
+              <span class="input-icon-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input class="form-input" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" value="demo123!">
+              <button class="input-action" type="button" data-toggle-password="#password" aria-label="Afficher le mot de passe">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <p class="form-error" data-error-for="password"></p>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-row">
+              <input type="checkbox" id="remember" name="remember" checked>
+              <span>Se souvenir de moi</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-block btn-lg" type="submit" id="login-submit">Se connecter</button>
+        </form>
+
+        <div class="auth-divider" style="margin-top:24px;">ou continuer avec</div>
+
+        <div class="auth-social-row">
+          <button class="auth-social-btn" type="button" data-toast="Connexion avec Google — démonstration frontend.">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.97 10.97 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Google
+          </button>
+          <button class="auth-social-btn" type="button" data-toast="Connexion avec GitHub — démonstration frontend.">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+              <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.06 11.06 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.2.66.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+
+        <p class="auth-switch">Vous n'avez pas encore de compte ? <a href="signup.html">S'inscrire gratuitement</a></p>
+
+        <div class="auth-trial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <strong>Hébergement sécurisé RGPD</strong>
+            <span>Vos données sont chiffrées et hébergées en Europe.</span>
+          </div>
+        </div>
+
+        <div class="auth-form-foot">
+          <a href="#" data-toast="Centre d'aide — démonstration frontend.">Aide</a>
+          <a href="#" data-toast="Politique de confidentialité — démonstration frontend.">Confidentialité</a>
+          <a href="#" data-toast="Conditions d'utilisation — démonstration frontend.">Conditions</a>
+          <span>© 2024 IntelliTamed</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modale mot de passe oublié -->
+  <div class="modal-overlay" id="forgot-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="forgot-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="forgot-title">Mot de passe oublié</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:#64748B;margin-bottom:16px;">Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="forgot-email">Adresse e-mail</label>
+          <input class="form-input" type="email" id="forgot-email" placeholder="nom@entreprise.com">
+          <p class="form-error" data-error-for="forgot-email"></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+        <button class="btn btn-primary" type="button" id="forgot-submit">Envoyer le lien</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</body>
+</html>

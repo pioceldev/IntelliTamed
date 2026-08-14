@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/onboarding.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="onboarding"></div>
+
+    <div class="app-main onboarding-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord" data-badge="Analyse IA"></header>
+
+      <div class="onboarding-grid">
+        <!-- Colonne principale : wizard -->
+        <div class="onboarding-wizard card">
+          <!-- Stepper -->
+          <div class="onboarding-steps">
+            <div class="onboarding-step is-active" data-step-label="1">
+              <span class="step-num">1</span>
+              <span class="step-name">Profil</span>
+            </div>
+            <div class="onboarding-step" data-step-label="2">
+              <span class="step-num">2</span>
+              <span class="step-name">Projet</span>
+            </div>
+            <div class="onboarding-step" data-step-label="3">
+              <span class="step-num">3</span>
+              <span class="step-name">Objectifs</span>
+            </div>
+            <div class="onboarding-step" data-step-label="4">
+              <span class="step-num">4</span>
+              <span class="step-name">Confirmation</span>
+            </div>
+          </div>
+          <div class="onboarding-progress">
+            <div class="progress"><div class="progress-bar" data-wizard-progress style="width:25%"></div></div>
+          </div>
+
+          <div class="onboarding-body">
+            <!-- ============ ÉTAPE 1 : PROFIL ============ -->
+            <section class="wizard-step" data-step="1">
+              <div class="wizard-head">
+                <span class="wizard-step-tag">Étape 1 sur 4 — Profil</span>
+                <h2>Quel est votre profil ?</h2>
+                <p>Sélectionnez le rôle qui correspond le mieux à votre situation actuelle.</p>
+              </div>
+
+              <div class="profile-cards">
+                <button class="profile-card" type="button" data-profile="solo">
+                  <span class="profile-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </span>
+                  <strong>Solo Entrepreneur</strong>
+                  <span class="profile-card-desc">Vous lancez seul votre projet et gérez tous les aspects de la création.</span>
+                </button>
+
+                <button class="profile-card" type="button" data-profile="cofounder">
+                  <span class="profile-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </span>
+                  <strong>Co-fondateur</strong>
+                  <span class="profile-card-desc">Vous faites partie d'une équipe fondatrice et cherchez à structurer votre synergie.</span>
+                </button>
+
+                <button class="profile-card" type="button" data-profile="intrapreneur">
+                  <span class="profile-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                  </span>
+                  <strong>Intrapreneur</strong>
+                  <span class="profile-card-desc">Vous développez un projet innovant au sein d'une structure existante.</span>
+                </button>
+
+                <button class="profile-card" type="button" data-profile="visionary">
+                  <span class="profile-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </span>
+                  <strong>Visionnaire</strong>
+                  <span class="profile-card-desc">Vous avez une idée révolutionnaire mais cherchez encore votre business model.</span>
+                </button>
+              </div>
+
+              <div class="wizard-field">
+                <label class="form-label">Niveau d'expérience en entrepreneuriat</label>
+                <div class="exp-options" data-exp>
+                  <button class="exp-option" type="button" data-value="debutant">Débutant</button>
+                  <button class="exp-option" type="button" data-value="intermediaire">Intermédiaire</button>
+                  <button class="exp-option" type="button" data-value="expert">Expert</button>
+                </div>
+                <p class="form-error" data-error-for="onboarding-step-1"></p>
+              </div>
+            </section>
+
+            <!-- ============ ÉTAPE 2 : PROJET ============ -->
+            <section class="wizard-step" data-step="2" hidden>
+              <div class="wizard-head">
+                <span class="wizard-step-tag">Étape 2 sur 4 — Projet</span>
+                <h2>Parlez-nous de votre projet</h2>
+                <p>Décrivez votre idée pour que notre IA puisse l'analyser et la challenger.</p>
+              </div>
+
+              <div class="wizard-fields">
+                <div class="form-group">
+                  <label class="form-label" for="onb-project-name">Nom du projet <span class="req">*</span></label>
+                  <input class="form-input" type="text" id="onb-project-name" placeholder="Ex. : EcoCharge, HealthScan AI…">
+                  <p class="form-error" data-error-for="onb-project-name"></p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="onb-project-desc">Description du projet <span class="req">*</span></label>
+                  <textarea class="form-textarea" id="onb-project-desc" rows="4" placeholder="Décrivez votre concept, votre cible et votre proposition de valeur…"></textarea>
+                  <p class="form-error" data-error-for="onb-project-desc"></p>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Domaine d'activité</label>
+                  <div class="domain-chips" data-domain>
+                    <button class="domain-chip" type="button" data-value="tech">Technologie</button>
+                    <button class="domain-chip" type="button" data-value="fintech">FinTech</button>
+                    <button class="domain-chip" type="button" data-value="sante">E-santé</button>
+                    <button class="domain-chip" type="button" data-value="edtech">EdTech</button>
+                    <button class="domain-chip" type="button" data-value="commerce">E-commerce</button>
+                    <button class="domain-chip" type="button" data-value="logistique">Logistique</button>
+                    <button class="domain-chip" type="button" data-value="marketing">Marketing</button>
+                    <button class="domain-chip" type="button" data-value="autre">Autre</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ============ ÉTAPE 3 : OBJECTIFS ============ -->
+            <section class="wizard-step" data-step="3" hidden>
+              <div class="wizard-head">
+                <span class="wizard-step-tag">Étape 3 sur 4 — Objectifs</span>
+                <h2>Quels sont vos objectifs ?</h2>
+                <p>Sélectionnez ce que vous souhaitez accomplir avec IntelliTamed.</p>
+              </div>
+
+              <div class="goals-list" data-goals>
+                <label class="goal-option">
+                  <input type="checkbox" value="valider-concept">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </span>
+                    <span><strong>Valider mon concept</strong><small>Évaluer la viabilité de mon idée sur le marché.</small></span>
+                  </span>
+                </label>
+
+                <label class="goal-option">
+                  <input type="checkbox" value="trouver-financement">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </span>
+                    <span><strong>Trouver un financement</strong><small>Identifier les subventions, investisseurs et incubateurs adaptés.</small></span>
+                  </span>
+                </label>
+
+                <label class="goal-option">
+                  <input type="checkbox" value="croissance">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                    </span>
+                    <span><strong>Accélérer ma croissance</strong><small>Développer mon chiffre d'affaires et recruter.</small></span>
+                  </span>
+                </label>
+
+                <label class="goal-option">
+                  <input type="checkbox" value="reseau">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </span>
+                    <span><strong>Développer mon réseau</strong><small>Partenariats stratégiques et communauté d'entrepreneurs.</small></span>
+                  </span>
+                </label>
+
+                <label class="goal-option">
+                  <input type="checkbox" value="competences">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </span>
+                    <span><strong>Monter en compétences</strong><small>Formations et ressources pour mieux entreprendre.</small></span>
+                  </span>
+                </label>
+
+                <label class="goal-option">
+                  <input type="checkbox" value="business-plan">
+                  <span class="goal-box">
+                    <span class="goal-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </span>
+                    <span><strong>Construire mon business plan</strong><small>Générer un plan d'affaires complet avec l'IA.</small></span>
+                  </span>
+                </label>
+              </div>
+            </section>
+
+            <!-- ============ ÉTAPE 4 : CONFIRMATION ============ -->
+            <section class="wizard-step" data-step="4" hidden>
+              <div class="wizard-confirm">
+                <span class="wizard-confirm-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </span>
+                <h2>Votre profil est configuré !</h2>
+                <p>Notre IA génère maintenant vos premiers insights et votre plan d'action stratégique personnalisé.</p>
+
+                <div class="confirm-summary">
+                  <div class="confirm-row">
+                    <span>Profil</span>
+                    <strong data-summary-profile>—</strong>
+                  </div>
+                  <div class="confirm-row">
+                    <span>Projet</span>
+                    <strong data-summary-project>—</strong>
+                  </div>
+                  <div class="confirm-row">
+                    <span>Domaine</span>
+                    <strong data-summary-domain>—</strong>
+                  </div>
+                  <div class="confirm-row">
+                    <span>Objectifs</span>
+                    <strong data-summary-goals>—</strong>
+                  </div>
+                </div>
+
+                <div class="confirm-cta">
+                  <button class="btn btn-primary btn-lg btn-block" type="button" id="finish-onboarding">
+                    <span class="btn-icon-inline">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </span>
+                    Accéder à mon Dashboard
+                  </button>
+                  <p class="confirm-note">L'assistant IA vous accompagnera à chaque étape.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Navigation du wizard -->
+            <div class="wizard-nav">
+              <button class="btn btn-secondary" type="button" id="wizard-prev" hidden>
+                <span class="btn-icon-inline" style="transform:rotate(180deg);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+                Précédent
+              </button>
+              <button class="btn btn-primary" type="button" id="wizard-next">Suivant</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colonne droite : assistant -->
+        <aside class="onboarding-ai card">
+          <div class="onboarding-ai-head">
+            <span class="ai-head-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            <div>
+              <strong>Assistant IntelliTamed</strong>
+              <span class="ai-active">IA active</span>
+            </div>
+          </div>
+
+          <div class="onboarding-ai-msg">
+            « Bonjour ! Je suis ici pour vous accompagner. Vos réponses nous permettent de configurer vos
+            Insights et de générer votre premier Plan d'Action stratégique. »
+          </div>
+
+          <div class="onboarding-ai-reasons">
+            <p class="reasons-title">Pourquoi ces questions ?</p>
+            <ul>
+              <li>
+                <span class="reason-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+                </span>
+                Personnalisation des algorithmes
+              </li>
+              <li>
+                <span class="reason-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </span>
+                Curation d'opportunités de marché
+              </li>
+              <li>
+                <span class="reason-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                </span>
+                Analyse prédictive des risques
+              </li>
+            </ul>
+          </div>
+
+          <div class="onboarding-ai-secure">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 11 12 14 16 10"/></svg>
+            <p>Vos données sont sécurisées et utilisées uniquement pour améliorer votre expérience IntelliTamed.</p>
+          </div>
+        </aside>
+      </div>
+
+      <div data-inject="app-footer" data-left="© 2026 IntelliTamed — Plateforme de Venture Building par IA"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/onboarding.js"></script>
+</body>
+</html>

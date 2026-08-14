@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan d'action — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/action-plan.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="action-plan"></div>
+
+    <div class="app-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Plan d'action"></header>
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div>
+          <span class="chip chip-violet">Workspace Entrepreneur</span>
+          <h1 class="page-title" style="margin-top:10px;">Plan d'Action Stratégique</h1>
+          <p class="page-description">
+            Suivez votre progression étape par étape et optimisez chaque décision grâce à nos agents d'analyse contextuelle.
+          </p>
+        </div>
+        <div class="plan-progress-head">
+          <div class="plan-ring"><div data-chart='{"type":"ring","percent":45,"size":88,"thickness":9}'></div></div>
+          <div>
+            <strong id="plan-done-count">5</strong>
+            <span>tâches terminées</span>
+            <strong id="plan-remaining-count">7</strong>
+            <span>tâches restantes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barre d'outils -->
+      <div class="plan-toolbar">
+        <div class="plan-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="plan-search" placeholder="Filtrer les tâches..." aria-label="Filtrer les tâches">
+        </div>
+        <div class="plan-toolbar-right">
+          <button class="btn btn-secondary" type="button" data-modal-open="#task-modal">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            Ajouter une étape
+          </button>
+          <button class="btn btn-primary" type="button" data-toast="Nouvelle recommandation IA générée pour votre plan.">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            Recommandations IA
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenu -->
+      <div class="plan-layout">
+        <div class="plan-phases" id="plan-phases">
+          <!-- Phases injectées par action-plan.js -->
+        </div>
+
+        <aside class="plan-side">
+          <!-- Détail de la tâche active -->
+          <section class="card task-detail" id="task-detail">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Détail de la tâche</h2>
+                <p class="card-subtitle" id="task-detail-category">Sélectionnez une étape</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="task-detail-content">
+                <p class="task-detail-empty">Cliquez sur une étape pour afficher ses actions de validation et sa documentation.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Documentation -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Ressources & Documentation</h2>
+                <p class="card-subtitle">Guides générés par l'IA</p>
+              </div>
+            </div>
+            <div class="card-body docs-list">
+              <a class="doc-item" href="#" data-toast="Documentation IA — démonstration frontend.">
+                <span class="doc-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </span>
+                <div>
+                  <strong>Documentation IA</strong>
+                  <span>Guide des bonnes pratiques LLM</span>
+                </div>
+              </a>
+              <a class="doc-item" href="#" data-toast="Analyse Marché — démonstration frontend.">
+                <span class="doc-icon violet">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                </span>
+                <div>
+                  <strong>Analyse Marché</strong>
+                  <span>Tendances Tech Q4 2024</span>
+                </div>
+              </a>
+            </div>
+          </section>
+
+          <!-- Prochain milestone -->
+          <section class="card milestone-card">
+            <span class="milestone-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            </span>
+            <h3>Prochain Milestone</h3>
+            <p id="milestone-text">Terminez encore <strong>3 tâches</strong> pour débloquer l'analyse de marché avancée.</p>
+            <div class="progress" style="margin:12px 0;"><div class="progress-bar" id="milestone-bar" style="width:42%"></div></div>
+            <button class="btn btn-outline btn-sm btn-block" type="button" data-toast="Milestone débloqué au prochain jalon — démonstration frontend.">Découvrir le milestone</button>
+          </section>
+        </aside>
+      </div>
+
+      <div data-inject="app-footer" data-left="IntelliTamed © 2024 — Système expert de croissance entrepreneuriale"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODALE TÂCHE ============ -->
+  <div class="modal-overlay" id="task-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="task-modal-title">Ajouter une étape</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="task-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="t-title">Titre de l'étape <span class="req">*</span></label>
+            <input class="form-input" type="text" id="t-title" placeholder="Ex. : Finaliser le business model" required>
+            <p class="form-error" data-error-for="t-title"></p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="t-desc">Description</label>
+            <textarea class="form-textarea" id="t-desc" rows="3" placeholder="Décrivez l'objectif de cette étape..."></textarea>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="t-phase">Phase</label>
+              <select class="form-select" id="t-phase">
+                <option value="phase-1">Phase 1 — Validation du concept</option>
+                <option value="phase-2">Phase 2 — Architecture technique</option>
+                <option value="phase-3">Phase 3 — Développement & test</option>
+                <option value="phase-4">Phase 4 — Lancement</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="t-category">Catégorie</label>
+              <select class="form-select" id="t-category">
+                <option>Stratégique</option>
+                <option>Opérationnel</option>
+                <option>Juridique</option>
+                <option>Technique</option>
+                <option>Marketing</option>
+                <option>Data</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="t-priority">Priorité</label>
+              <select class="form-select" id="t-priority">
+                <option value="high">Haute</option>
+                <option value="medium">Moyenne</option>
+                <option value="low">Basse</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="t-time">Temps estimé</label>
+              <input class="form-input" type="text" id="t-time" placeholder="Ex. : 4h">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+          <button class="btn btn-primary" type="submit">Ajouter l'étape</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/action-plan.js"></script>
+</body>
+</html>

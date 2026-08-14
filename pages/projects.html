@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Projets — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/projects.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="projects"></div>
+
+    <div class="app-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Mes Projets"></header>
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Gestion des Projets</h1>
+          <p class="page-description">
+            Suivez l'avancement de vos initiatives entrepreneuriales. Utilisez l'IA pour valider vos jalons
+            et identifier les risques potentiels en temps réel.
+          </p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary" type="button" data-toast="Analyse IA collective lancée sur vos 5 projets.">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            Analyse IA Collective
+          </button>
+          <button class="btn btn-primary" type="button" data-modal-open="#project-modal">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            Nouveau Projet
+          </button>
+        </div>
+      </div>
+
+      <!-- Outils -->
+      <div class="projects-toolbar">
+        <div class="projects-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="project-search" placeholder="Rechercher un projet, une catégorie..." aria-label="Rechercher un projet">
+        </div>
+        <div class="projects-toolbar-right">
+          <div class="projects-filters">
+            <select class="form-select" id="filter-status" aria-label="Filtrer par statut">
+              <option value="">Tous les statuts</option>
+              <option value="in-progress">En cours</option>
+              <option value="planned">Planifié</option>
+              <option value="late">En retard</option>
+              <option value="done">Terminé</option>
+            </select>
+            <select class="form-select" id="filter-priority" aria-label="Filtrer par priorité">
+              <option value="">Toutes les priorités</option>
+              <option value="high">Haute</option>
+              <option value="medium">Moyenne</option>
+              <option value="low">Basse</option>
+            </select>
+            <button class="btn btn-ghost" type="button" id="clear-filters">
+              <span class="btn-icon-inline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+              Réinitialiser
+            </button>
+          </div>
+          <div class="view-toggle" role="tablist" aria-label="Changer de vue">
+            <button class="view-toggle-btn is-active" type="button" data-view="table" role="tab" aria-selected="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+              Table
+            </button>
+            <button class="view-toggle-btn" type="button" data-view="roadmap" role="tab" aria-selected="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              Roadmap
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vue tableau -->
+      <section class="card" data-view-panel="table">
+        <div class="table-wrap">
+          <table class="table projects-table">
+            <thead>
+              <tr>
+                <th>Projet</th>
+                <th>Statut</th>
+                <th>Priorité</th>
+                <th>Progression</th>
+                <th>Équipe</th>
+                <th>Échéance</th>
+                <th class="th-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projects-tbody">
+              <!-- Injecté par projects.js -->
+            </tbody>
+          </table>
+          <div class="empty-state" id="projects-empty" hidden>
+            <span class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <h3>Aucun projet trouvé</h3>
+            <p>Aucun projet ne correspond à votre recherche. Créez un nouveau projet pour commencer.</p>
+            <button class="btn btn-primary btn-sm" type="button" data-modal-open="#project-modal">Nouveau Projet</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vue roadmap -->
+      <section class="card" data-view-panel="roadmap" hidden>
+        <div class="roadmap-lanes" id="roadmap-lanes">
+          <!-- Injecté par projects.js -->
+        </div>
+      </section>
+
+      <!-- Bannières IA -->
+      <div class="ai-banners">
+        <div class="ai-banner">
+          <span class="ai-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          </span>
+          <div class="ai-banner-body">
+            <p>
+              L'IA a détecté un <strong>goulot d'étranglement potentiel</strong> sur le projet
+              <strong>« Plateforme E-commerce V2 »</strong>. Les dépendances techniques sont à 85% de saturation.
+            </p>
+            <a class="btn btn-secondary btn-sm" href="project-analysis.html">Voir les recommandations IA</a>
+          </div>
+        </div>
+        <div class="ai-banner violet">
+          <span class="ai-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </span>
+          <div class="ai-banner-body">
+            <p>
+              Basé sur votre projet <strong>« Expansion Marché IA »</strong>, un nouveau segment B2B en
+              Allemagne présente un <strong>score de validation de 92%</strong>.
+            </p>
+            <a class="btn btn-secondary btn-sm" href="opportunities.html">Explorer l'opportunité</a>
+          </div>
+        </div>
+      </div>
+
+      <div data-inject="app-footer" data-left="© 2024 IntelliTamed IA. Tous droits réservés."></div>
+    </div>
+  </div>
+
+  <!-- ============ MODALE PROJET (création / édition) ============ -->
+  <div class="modal-overlay" id="project-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="project-modal-title">Nouveau Projet</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="project-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="p-name">Nom du projet <span class="req">*</span></label>
+            <input class="form-input" type="text" id="p-name" placeholder="Ex. : Expansion Marché IA Europe" required>
+            <p class="form-error" data-error-for="p-name"></p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-category">Catégorie</label>
+            <select class="form-select" id="p-category">
+              <option>Stratégie</option>
+              <option>Opérations</option>
+              <option>Technologie</option>
+              <option>Marketing</option>
+              <option>IA / Data</option>
+              <option>Finance</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="p-status">Statut</label>
+              <select class="form-select" id="p-status">
+                <option value="in-progress">En cours</option>
+                <option value="planned">Planifié</option>
+                <option value="late">En retard</option>
+                <option value="done">Terminé</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-priority">Priorité</label>
+              <select class="form-select" id="p-priority">
+                <option value="high">Haute</option>
+                <option value="medium">Moyenne</option>
+                <option value="low">Basse</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="p-progress">Progression (%)</label>
+              <input class="form-input" type="number" id="p-progress" min="0" max="100" value="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-due">Échéance</label>
+              <input class="form-input" type="text" id="p-due" placeholder="Ex. : 15 déc 2024">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="p-team">Taille de l'équipe</label>
+            <input class="form-input" type="number" id="p-team" min="1" value="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+          <button class="btn btn-primary" type="submit" id="project-save">Créer le projet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MODALE SUPPRESSION ============ -->
+  <div class="modal-overlay" id="delete-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="delete-modal-title">Supprimer le projet</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:#64748B;">
+          Êtes-vous sûr de vouloir supprimer <strong id="delete-project-name">ce projet</strong> ?
+          Cette action est irréversible.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+        <button class="btn btn-danger" type="button" id="delete-confirm">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/projects.js"></script>
+</body>
+</html>

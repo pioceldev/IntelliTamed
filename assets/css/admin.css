@@ -1,0 +1,270 @@
+/* ============================================================
+   IntelliTamed — Administration
+   ============================================================ */
+
+.mini-chart {
+  margin-top: var(--space-2);
+  height: 30px;
+}
+
+.mini-chart svg {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.admin-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-5));
+}
+
+.chart-legend {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.chart-legend .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+/* ---------- Transactions ---------- */
+.transactions-table td {
+  white-space: nowrap;
+}
+
+.tx-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+  font-weight: 600;
+}
+
+.tx-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+/* ---------- Distribution des plans ---------- */
+.plan-distribution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.plan-stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.plan-stat {
+  padding: var(--space-3);
+  background: var(--light-gray);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.plan-stat span {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+  margin-bottom: 4px;
+}
+
+.plan-stat strong {
+  font-size: var(--font-size-base);
+  color: var(--dark-text);
+}
+
+/* ---------- État du système ---------- */
+.system-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.system-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.system-list li:last-child {
+  border-bottom: none;
+}
+
+.sys-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--blue-soft);
+  color: var(--electric-blue);
+  flex-shrink: 0;
+}
+
+.sys-icon.violet { background: var(--violet-soft); color: var(--violet); }
+.sys-icon.green { background: var(--success-soft); color: var(--success); }
+.sys-icon.amber { background: #FEF3C7; color: #B45309; }
+
+.sys-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.system-list li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.system-list strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.system-list li > div span {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+/* ---------- Rapports ---------- */
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--space-4);
+}
+
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.report-item:last-child {
+  border-bottom: none;
+}
+
+.report-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--blue-soft);
+  color: var(--electric-blue);
+  flex-shrink: 0;
+}
+
+.report-icon.violet { background: var(--violet-soft); color: var(--violet); }
+.report-icon.amber { background: #FEF3C7; color: #B45309; }
+
+.report-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.report-item > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.report-item strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.report-item > div span {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+/* ---------- Journaux d'audit ---------- */
+.audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.audit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.audit-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.audit-dot.blue { background: var(--electric-blue); }
+.audit-dot.green { background: var(--success); }
+.audit-dot.amber { background: #F59E0B; }
+.audit-dot.red { background: var(--error); }
+
+.audit-item strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.audit-item span {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) {
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-side {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .transactions-table th,
+  .transactions-table td {
+    padding: 0.75rem 1rem;
+  }
+}

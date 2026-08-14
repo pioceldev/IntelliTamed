@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant IA — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/assistant.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="assistant"></div>
+
+    <div class="app-main assistant-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Analyse IA"></header>
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Assistant IA IntelliTamed</h1>
+          <p class="page-description">
+            Votre partenaire stratégique pour valider, construire et scaler vos entreprises grâce à l'intelligence artificielle.
+          </p>
+        </div>
+      </div>
+
+      <div class="assistant-layout">
+        <!-- ============ FENÊTRE DE CHAT ============ -->
+        <section class="card chat-card" aria-label="Conversation avec l'assistant IA">
+          <div class="chat-head">
+            <div class="chat-head-info">
+              <span class="chat-head-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+              </span>
+              <div>
+                <strong id="chat-title">Nouvelle discussion</strong>
+                <span class="ai-active" id="ai-status" title="Vérification de la connexion…">Connexion…</span>
+              </div>
+            </div>
+            <button class="btn-icon" type="button" data-toast="Menu de conversation — démonstration frontend." aria-label="Options de la conversation">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+          </div>
+
+          <div class="chat-messages" id="chat-messages" aria-live="polite">
+            <!-- Contenu injecté par assistant.js -->
+          </div>
+
+          <!-- Suggestions (affichées quand la conversation est vide) -->
+          <div class="chat-suggestions" id="chat-suggestions">
+            <p>Je peux vous aider à :</p>
+            <div class="suggestion-chips">
+              <button class="suggestion-chip" type="button" data-prompt="Analyse de marché : identifiez les tendances porteuses dans le secteur de la Tech.">
+                <span class="suggestion-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                </span>
+                <span>
+                  <strong>Analyse de Marché</strong>
+                  <small>Identifiez les tendances porteuses</small>
+                </span>
+              </button>
+              <button class="suggestion-chip" type="button" data-prompt="Validation de concept : évaluez la viabilité de mon idée de business.">
+                <span class="suggestion-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </span>
+                <span>
+                  <strong>Validation de Concept</strong>
+                  <small>Évaluez la viabilité de votre idée</small>
+                </span>
+              </button>
+              <button class="suggestion-chip" type="button" data-prompt="Plan de croissance : définissez les étapes clés pour mon prochain trimestre.">
+                <span class="suggestion-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </span>
+                <span>
+                  <strong>Plan de Croissance</strong>
+                  <small>Définissez les étapes clés</small>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Zone de saisie -->
+          <div class="chat-input-area">
+            <form class="chat-input-form" id="chat-form">
+              <div class="chat-input-box">
+                <textarea id="chat-input" rows="1" placeholder="Posez votre question à l'Assistant IA..." aria-label="Votre message"></textarea>
+                <button class="chat-send-btn" type="submit" aria-label="Envoyer le message">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+              </div>
+            </form>
+            <p class="chat-disclaimer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              L'intelligence artificielle peut faire des erreurs. Pensez à vérifier les informations importantes.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============ HISTORIQUE ============ -->
+        <aside class="assistant-side">
+          <button class="btn btn-primary btn-block" type="button" id="new-chat-btn">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            Nouvelle Discussion
+          </button>
+
+          <section class="card history-card">
+            <div class="history-head">
+              <h2 class="card-title">Historique</h2>
+              <span class="chip chip-gray" id="history-count">5</span>
+            </div>
+            <ul class="history-list" id="history-list">
+              <li>
+                <button class="history-item is-active" type="button" data-conversation="analyse-marche-saas">
+                  <strong>Analyse de marché SaaS</strong>
+                  <span>Quelles sont les opportunités…</span>
+                  <small>Aujourd'hui</small>
+                </button>
+              </li>
+              <li>
+                <button class="history-item" type="button" data-conversation="plan-action-q3">
+                  <strong>Plan d'action Q3</strong>
+                  <span>Établir les étapes clés pour…</span>
+                  <small>Lundi</small>
+                </button>
+              </li>
+              <li>
+                <button class="history-item" type="button" data-conversation="validation-fintech">
+                  <strong>Validation concept FinTech</strong>
+                  <span>Analyse concurrentielle secteur…</span>
+                  <small>15 Mai</small>
+                </button>
+              </li>
+              <li>
+                <button class="history-item" type="button" data-conversation="optimisation-workflow">
+                  <strong>Optimisation Workflow</strong>
+                  <span>Comment automatiser les tâches…</span>
+                  <small>12 Mai</small>
+                </button>
+              </li>
+              <li>
+                <button class="history-item" type="button" data-conversation="strategie-pricing">
+                  <strong>Stratégie de Pricing</strong>
+                  <span>Modèles d'abonnement pour…</span>
+                  <small>8 Mai</small>
+                </button>
+              </li>
+            </ul>
+          </section>
+
+          <section class="card upgrade-card">
+            <span class="upgrade-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </span>
+            <h3>Passer à Pro</h3>
+            <p>Débloquez des analyses illimitées et l'accès à nos modèles les plus avancés.</p>
+            <a class="btn btn-primary btn-sm btn-block" href="profile.html">Voir les forfaits</a>
+          </section>
+        </aside>
+      </div>
+
+      <div data-inject="app-footer" data-left="© 2024 IntelliTamed — Assistant IA"></div>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/assistant.js"></script>
+</body>
+</html>

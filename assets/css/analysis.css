@@ -1,0 +1,477 @@
+/* ============================================================
+   IntelliTamed — Analyse de projet
+   ============================================================ */
+
+.analysis-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.analysis-live {
+  gap: var(--space-2);
+}
+
+.analysis-ring {
+  margin-top: var(--space-2);
+}
+
+.analysis-ring svg {
+  margin-inline: auto;
+}
+
+/* Complexité */
+.complexity-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 36px;
+  margin-top: var(--space-2);
+}
+
+.complexity-bars .bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: var(--electric-blue);
+  opacity: 0.75;
+}
+
+/* Risque */
+.risk-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--space-2);
+}
+
+.risk-gauge span {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+/* ---------- Grille d'analyse ---------- */
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.analysis-main,
+.analysis-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* SWOT */
+.swot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.swot-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.swot-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--success);
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.swot-label.amber { color: #B45309; }
+.swot-label.blue { color: var(--electric-blue); }
+.swot-label.red { color: var(--error); }
+
+.swot-label svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.swot-row .progress {
+  flex: 1;
+}
+
+.swot-row strong {
+  font-size: var(--font-size-xs);
+  width: 34px;
+  text-align: right;
+}
+
+/* Part de marché */
+.market-share {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.market-legend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.market-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--secondary-text);
+}
+
+.market-legend li strong {
+  margin-left: auto;
+  color: var(--dark-text);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Segments */
+.segment-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.segment-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.segment-item > div {
+  flex: 1;
+}
+
+.segment-item strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.segment-item span {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+}
+
+.segment-item b {
+  font-size: var(--font-size-lg);
+  color: var(--dark-text);
+}
+
+/* Check list */
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.check-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.check-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.check-ic svg {
+  width: 11px;
+  height: 11px;
+}
+
+.competition-note {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--error-soft);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: var(--radius-md);
+}
+
+.competition-note strong {
+  font-size: var(--font-size-sm);
+  color: var(--error);
+}
+
+.competition-note p {
+  margin-top: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--dark-text);
+  line-height: 1.55;
+}
+
+/* SWOT grid */
+.swot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.swot-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  background: var(--white);
+}
+
+.swot-card h3 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swot-card h3::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.swot-card.strengths h3::before { background: var(--success); }
+.swot-card.weaknesses h3::before { background: #F59E0B; }
+.swot-card.opportunities h3::before { background: var(--electric-blue); }
+.swot-card.threats h3::before { background: var(--error); }
+
+.swot-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.swot-card li {
+  position: relative;
+  padding-left: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--secondary-text);
+  line-height: 1.55;
+}
+
+.swot-card li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--dark-text);
+  font-weight: 700;
+}
+
+.risk-matrix {
+  margin-top: var(--space-4);
+}
+
+/* Insights */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.insight-card {
+  padding: var(--space-5);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--electric-blue);
+  border-radius: var(--radius-md);
+  background: var(--light-gray);
+}
+
+.insight-card.high {
+  border-left-color: var(--error);
+}
+
+.insight-card.warn {
+  border-left-color: #F59E0B;
+}
+
+.insight-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.insight-type {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+.insight-card p {
+  font-size: var(--font-size-sm);
+  color: var(--secondary-text);
+  line-height: 1.6;
+}
+
+.insight-card p strong {
+  color: var(--dark-text);
+}
+
+/* Prochaines étapes */
+.next-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.next-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.next-step:hover {
+  border-color: var(--ai-blue);
+}
+
+.next-step input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.next-step-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 7px;
+  color: transparent;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.next-step-check svg {
+  width: 13px;
+  height: 13px;
+}
+
+.next-step input:checked + .next-step-check {
+  background: var(--electric-blue);
+  border-color: var(--electric-blue);
+  color: #fff;
+}
+
+.next-step > div {
+  flex: 1;
+}
+
+.next-step strong {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+.next-step p {
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+  margin-top: 2px;
+}
+
+.next-step input:checked ~ div strong {
+  text-decoration: line-through;
+  color: var(--secondary-text);
+}
+
+.next-steps-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--secondary-text);
+  font-weight: 600;
+}
+
+/* CTA */
+.analysis-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: linear-gradient(120deg, var(--blue-soft), var(--violet-soft));
+  border-color: transparent;
+  flex-wrap: wrap;
+}
+
+.analysis-cta-copy h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.analysis-cta-copy p {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--secondary-text);
+}
+
+.analysis-cta-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1100px) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .swot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-header {
+    flex-direction: column;
+  }
+
+  .analysis-header .page-actions {
+    width: 100%;
+  }
+
+  .analysis-header .page-actions .btn {
+    flex: 1;
+  }
+
+  .analysis-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

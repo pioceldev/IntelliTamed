@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="admin"></div>
+
+    <div class="app-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Administration"></header>
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Tableau de Bord Administrateur</h1>
+          <p class="page-description">Surveillance globale de la plateforme IntelliTamed et métriques de croissance.</p>
+        </div>
+        <div class="page-actions">
+          <select class="form-select" aria-label="Période">
+            <option>Derniers 30 Jours</option>
+            <option>Derniers 7 Jours</option>
+            <option>Ce trimestre</option>
+          </select>
+          <button class="btn btn-secondary" type="button" data-toast="Export des données administrateur en cours…">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-label">Revenu Récurrent Mensuel</div>
+          <div class="stat-value">42 580,00 €</div>
+          <span class="stat-delta up">▲ +12,5% vs mois dernier</span>
+          <div class="mini-chart" aria-hidden="true">
+            <svg viewBox="0 0 120 30" preserveAspectRatio="none"><path d="M0,26 C15,24 25,18 40,19 C55,20 65,12 80,13 C95,14 105,6 120,4" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Utilisateurs Actifs</div>
+          <div class="stat-value">1 284</div>
+          <span class="stat-delta up">▲ +18,2% vs mois dernier</span>
+          <div class="mini-chart" aria-hidden="true">
+            <svg viewBox="0 0 120 30" preserveAspectRatio="none"><path d="M0,25 C15,23 25,20 40,18 C55,16 65,14 80,12 C95,10 105,7 120,5" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Requêtes IA / Minute</div>
+          <div class="stat-value">842</div>
+          <span class="stat-delta up">▲ +24,1% vs mois dernier</span>
+          <div class="mini-chart" aria-hidden="true">
+            <svg viewBox="0 0 120 30" preserveAspectRatio="none"><path d="M0,24 C15,26 25,20 40,22 C55,24 65,14 80,16 C95,18 105,8 120,10" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Taux de Conversion</div>
+          <div class="stat-value">3,42<small>%</small></div>
+          <span class="stat-delta down">▼ -0,4% vs mois dernier</span>
+          <div class="mini-chart" aria-hidden="true">
+            <svg viewBox="0 0 120 30" preserveAspectRatio="none"><path d="M0,8 C15,10 25,14 40,13 C55,12 65,18 80,17 C95,16 105,22 120,22" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille principale -->
+      <div class="admin-grid">
+        <div class="admin-main">
+          <!-- Croissance du revenu -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Croissance du Revenu</h2>
+                <p class="card-subtitle">Performance financière annuelle cumulée (EUR)</p>
+              </div>
+              <div class="chart-legend">
+                <span><i class="dot" style="background:#2563EB;"></i>Revenu</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div data-chart='{"type":"line","height":280,"labels":["Jan","Fév","Mar","Avr","Mai","Juin"],"series":[{"name":"Revenu","color":"#2563EB","data":[15,22,30,38,45,53]}]}'></div>
+            </div>
+          </section>
+
+          <!-- Charge du moteur IA -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Charge du Moteur IA</h2>
+                <p class="card-subtitle">Nombre de requêtes traitées par tranche horaire</p>
+              </div>
+              <span class="chip chip-violet">Aujourd'hui</span>
+            </div>
+            <div class="card-body">
+              <div data-chart='{"type":"line","height":240,"area":true,"labels":["00:00","04:00","08:00","12:00","16:00","20:00"],"series":[{"name":"Requêtes","color":"#7C3AED","data":[120,80,310,540,630,480]}]}'></div>
+            </div>
+          </section>
+
+          <!-- Transactions récentes -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Transactions Récentes</h2>
+                <p class="card-subtitle">Suivi en temps réel des flux financiers entrants</p>
+              </div>
+              <a class="btn btn-ghost btn-sm" href="#" data-toast="Liste complète des transactions — démonstration frontend.">Voir Tout</a>
+            </div>
+            <div class="table-wrap">
+              <table class="table transactions-table">
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>Utilisateur</th>
+                    <th>Forfait</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="tx-id">TX-9021</span></td>
+                    <td>
+                      <div class="tx-user">
+                        <span class="avatar avatar-sm">ML</span>
+                        <span>Marc Lefebvre</span>
+                      </div>
+                    </td>
+                    <td>Premium Annuel</td>
+                    <td>499,00 €</td>
+                    <td><span class="badge-status badge-done">Complété</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="tx-id">TX-9022</span></td>
+                    <td>
+                      <div class="tx-user">
+                        <span class="avatar avatar-sm">SB</span>
+                        <span>Sophie Bernard</span>
+                      </div>
+                    </td>
+                    <td>Entreprise Mensuel</td>
+                    <td>899,00 €</td>
+                    <td><span class="badge-status badge-done">Complété</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="tx-id">TX-9023</span></td>
+                    <td>
+                      <div class="tx-user">
+                        <span class="avatar avatar-sm">JP</span>
+                        <span>Jean-Luc Petit</span>
+                      </div>
+                    </td>
+                    <td>Pro Mensuel</td>
+                    <td>49,00 €</td>
+                    <td><span class="badge-status badge-planned">En attente</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="tx-id">TX-9024</span></td>
+                    <td>
+                      <div class="tx-user">
+                        <span class="avatar avatar-sm">AD</span>
+                        <span>Amélie Dubois</span>
+                      </div>
+                    </td>
+                    <td>Premium Mensuel</td>
+                    <td>99,00 €</td>
+                    <td><span class="badge-status badge-done">Complété</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="tx-id">TX-9025</span></td>
+                    <td>
+                      <div class="tx-user">
+                        <span class="avatar avatar-sm">RD</span>
+                        <span>Robert Durand</span>
+                      </div>
+                    </td>
+                    <td>Pro Annuel</td>
+                    <td>453,00 €</td>
+                    <td><span class="badge-status badge-late">Échoué</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Colonne droite -->
+        <aside class="admin-side">
+          <!-- Distribution des plans -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Distribution des Plans</h2>
+                <p class="card-subtitle">Répartition des abonnements actifs</p>
+              </div>
+            </div>
+            <div class="card-body plan-distribution">
+              <div data-chart='{"type":"donut","size":170,"centerLabel":"1 284","centerSub":"utilisateurs","segments":[{"label":"Pro","value":45,"color":"#2563EB"},{"label":"Premium","value":28,"color":"#7C3AED"},{"label":"Entreprise","value":17,"color":"#16A34A"},{"label":"Starter","value":10,"color":"#CBD5E1"}]}'></div>
+              <div class="plan-stats">
+                <div class="plan-stat">
+                  <span>Top Segment</span>
+                  <strong>Pro (45%)</strong>
+                </div>
+                <div class="plan-stat">
+                  <span>Taux de Rétention</span>
+                  <strong style="color:var(--success);">92,4%</strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- État du système -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">État du Système</h2>
+                <p class="card-subtitle">Performance infrastructurelle en temps réel</p>
+              </div>
+              <span class="chip chip-green"><span class="live-dot"></span> En ligne</span>
+            </div>
+            <div class="card-body">
+              <ul class="system-list">
+                <li>
+                  <span class="sys-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                  </span>
+                  <div>
+                    <strong>Serveurs API</strong>
+                    <span>99,98% uptime · 38ms latence</span>
+                  </div>
+                  <span class="badge-status badge-done">Opérationnel</span>
+                </li>
+                <li>
+                  <span class="sys-icon violet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></svg>
+                  </span>
+                  <div>
+                    <strong>Moteur d'IA</strong>
+                    <span>842 req/min · 1,2s réponse</span>
+                  </div>
+                  <span class="badge-status badge-done">Opérationnel</span>
+                </li>
+                <li>
+                  <span class="sys-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  </span>
+                  <div>
+                    <strong>CDN & Edge</strong>
+                    <span>34 nodes · cache hit 91%</span>
+                  </div>
+                  <span class="badge-status badge-done">Opérationnel</span>
+                </li>
+                <li>
+                  <span class="sys-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                  </span>
+                  <div>
+                    <strong>Charge CPU Moyenne</strong>
+                    <span>42% sur les 24 dernières heures</span>
+                  </div>
+                  <span class="chip chip-amber">Stable</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Rapports planifiés -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Rapports Planifiés</h2>
+                <p class="card-subtitle">Exportations automatiques</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <ul class="reports-list">
+                <li class="report-item">
+                  <span class="report-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                  </span>
+                  <div>
+                    <strong>Rapport de Ventes</strong>
+                    <span>Hebdo · Lundi, 08:00 AM</span>
+                  </div>
+                  <span class="chip chip-green">Actif</span>
+                </li>
+                <li class="report-item">
+                  <span class="report-icon violet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                  </span>
+                  <div>
+                    <strong>Analyse Churn</strong>
+                    <span>Mensuel · 1er du mois, 00:00</span>
+                  </div>
+                  <span class="chip chip-green">Actif</span>
+                </li>
+                <li class="report-item">
+                  <span class="report-icon amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </span>
+                  <div>
+                    <strong>Audit de Sécurité IA</strong>
+                    <span>Quotidien · 02:00 AM</span>
+                  </div>
+                  <span class="chip chip-green">Actif</span>
+                </li>
+              </ul>
+              <button class="btn btn-secondary btn-sm btn-block" type="button" data-modal-open="#report-modal">
+                <span class="btn-icon-inline">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </span>
+                Nouveau Rapport
+              </button>
+            </div>
+          </section>
+
+          <!-- Journaux d'audit -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Journaux d'Audit</h2>
+                <p class="card-subtitle">Activité administrative récente</p>
+              </div>
+              <a class="btn btn-ghost btn-sm" href="#" data-toast="Journaux complets — démonstration frontend.">Voir tout</a>
+            </div>
+            <div class="card-body audit-list">
+              <div class="audit-item">
+                <span class="audit-dot blue"></span>
+                <div><strong>Export des données</strong><span>Admin · Il y a 12 min</span></div>
+              </div>
+              <div class="audit-item">
+                <span class="audit-dot green"></span>
+                <div><strong>Nouvel utilisateur Premium</strong><span>Marc Lefebvre · Il y a 1h</span></div>
+              </div>
+              <div class="audit-item">
+                <span class="audit-dot amber"></span>
+                <div><strong>Mise à jour des modèles IA</strong><span>Version 2.4.0 · Il y a 3h</span></div>
+              </div>
+              <div class="audit-item">
+                <span class="audit-dot red"></span>
+                <div><strong>Échec de paiement</strong><span>Robert Durand · Il y a 5h</span></div>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div data-inject="app-footer" data-left="Console d'Administration IntelliTamed v2.4.0-stable" data-extra='<a href="#" data-toast="Documentation API — démonstration frontend.">Documentation API</a><a href="#" data-toast="Support technique — démonstration frontend.">Support Technique</a>'></div>
+    </div>
+  </div>
+
+  <!-- ============ MODALE NOUVEAU RAPPORT ============ -->
+  <div class="modal-overlay" id="report-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="report-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="report-title">Nouveau Rapport Planifié</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="rep-name">Nom du rapport</label>
+          <input class="form-input" type="text" id="rep-name" placeholder="Ex. : Rapport de croissance">
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="rep-frequency">Fréquence</label>
+            <select class="form-select" id="rep-frequency">
+              <option>Quotidien</option>
+              <option>Hebdomadaire</option>
+              <option>Mensuel</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="rep-time">Heure d'envoi</label>
+            <input class="form-input" type="time" id="rep-time" value="08:00">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+        <button class="btn btn-primary" type="button" id="report-save">Créer le rapport</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/admin.js"></script>
+</body>
+</html>

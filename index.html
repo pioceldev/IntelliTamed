@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IntelliTamed — Tame Intelligence. Shape the Future.</title>
+  <meta name="description" content="IntelliTamed transforme vos idées en projets et opportunités concrètes grâce à l'intelligence artificielle.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/ui.css">
+  <link rel="stylesheet" href="assets/css/landing.css">
+</head>
+<body class="landing-body">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="landing-nav" id="navbar">
+    <div class="container landing-nav-inner">
+      <a class="brand" href="index.html" aria-label="IntelliTamed — accueil">
+        <span class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        </span>
+        <span class="brand-name">IntelliTamed</span>
+      </a>
+
+      <nav class="landing-nav-links" aria-label="Navigation principale">
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#assistant">Assistant IA</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#temoignages">Témoignages</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="landing-nav-cta">
+        <a class="btn btn-ghost" href="pages/login.html">Se connecter</a>
+        <a class="btn btn-primary" href="pages/signup.html">Commencer gratuitement</a>
+      </div>
+
+      <button class="btn-icon nav-burger" type="button" data-nav-toggle aria-label="Ouvrir le menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Menu mobile -->
+    <div class="landing-mobile-menu" data-mobile-menu hidden>
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#assistant">Assistant IA</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#temoignages">Témoignages</a>
+      <a href="#faq">FAQ</a>
+      <div class="landing-mobile-menu-cta">
+        <a class="btn btn-secondary btn-block" href="pages/login.html">Se connecter</a>
+        <a class="btn btn-primary btn-block" href="pages/signup.html">Commencer gratuitement</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="hero-badge">
+            <span class="hero-badge-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+            </span>
+            Plateforme de Venture Building par IA
+          </span>
+          <h1 class="hero-title">Propulsez vos idées avec <span class="grad-text">l'Intelligence Artificielle</span>.</h1>
+          <p class="hero-subtitle">
+            IntelliTamed transforme la création d'entreprise : de l'idéation à l'exécution.
+            Bénéficiez d'une intelligence qui valide, challenge et accélère chaque étape de votre projet.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="pages/signup.html">
+              Commencer gratuitement
+              <span class="btn-icon-inline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </span>
+            </a>
+            <a class="btn btn-ghost btn-lg hero-demo-btn" href="#assistant">Voir la démo</a>
+          </div>
+          <p class="hero-trust">Essai gratuit de 14 jours · Aucune carte de crédit requise</p>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-preview">
+            <div class="hero-preview-bar">
+              <span></span><span></span><span></span>
+              <div class="hero-preview-title">Tableau de bord</div>
+              <div class="hero-preview-avatar">JD</div>
+            </div>
+            <div class="hero-preview-body">
+              <div class="preview-stats">
+                <div class="preview-stat">
+                  <small>Venture Score</small>
+                  <strong>84<em>/100</em></strong>
+                  <span class="up">▲ +12%</span>
+                </div>
+                <div class="preview-stat">
+                  <small>Revenu Estimé</small>
+                  <strong>12 450 €</strong>
+                  <span class="up">▲ +8,2%</span>
+                </div>
+                <div class="preview-stat">
+                  <small>Projets Actifs</small>
+                  <strong>4</strong>
+                  <span>En cours</span>
+                </div>
+              </div>
+              <div class="preview-chart">
+                <svg viewBox="0 0 300 110" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="pcg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,90 C30,82 45,70 70,72 C95,74 110,52 140,54 C170,56 185,38 215,32 C245,26 265,20 300,14 L300,110 L0,110 Z" fill="url(#pcg)"/>
+                  <path d="M0,90 C30,82 45,70 70,72 C95,74 110,52 140,54 C170,56 185,38 215,32 C245,26 265,20 300,14" fill="none" stroke="#3B82F6" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M0,102 C35,98 60,88 90,90 C120,92 150,74 180,68 C210,62 250,58 300,50" fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 0"/>
+                </svg>
+              </div>
+            </div>
+            <div class="hero-preview-ai">
+              <span class="chip chip-blue">
+                <svg class="chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+                Opportunité détectée
+              </span>
+              <p>Nouveau segment B2B identifié — score de validation <strong>92%</strong></p>
+            </div>
+          </div>
+          <div class="hero-glow" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Logos -->
+      <div class="container hero-logos">
+        <p class="hero-logos-label">Ils font déjà confiance à IntelliTamed</p>
+        <div class="hero-logos-row">
+          <span class="logo-word">FASTVENTURES</span>
+          <span class="logo-word">TRUSTTEAM</span>
+          <span class="logo-word">DATASTEAM</span>
+          <span class="logo-word">PEOPLEFIRST</span>
+          <span class="logo-word">NEXTLAB</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FONCTIONNALITÉS ================= -->
+    <section class="section" id="fonctionnalites">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Fonctionnalités</span>
+          <h2 class="section-title">Tout ce dont vous avez besoin pour bâtir votre empire</h2>
+          <p class="section-subtitle">
+            Une plateforme complète qui vous accompagne de l'idée à l'entreprise — avec l'intelligence artificielle à chaque étape.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <span class="feature-icon blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <h3>Gestion de projet Intelligente</h3>
+            <p>Organisez vos phases, jalons et tâches avec des agents d'analyse contextuelle qui suivent votre progression en temps réel.</p>
+            <a href="pages/signup.html">Découvrir <span aria-hidden="true">→</span></a>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon violet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+            </span>
+            <h3>Analyses prédictives IA</h3>
+            <p>Notre moteur traite des millions de points de données pour évaluer la viabilité de votre projet, ses risques et sa croissance.</p>
+            <a href="pages/signup.html">Découvrir <span aria-hidden="true">→</span></a>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </span>
+            <h3>Opportunités de Marché</h3>
+            <p>Identifiez les niches inexploitées, les financements et les partenariats les plus adaptés à votre profil d'entrepreneur.</p>
+            <a href="pages/signup.html">Découvrir <span aria-hidden="true">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ASSISTANT IA ================= -->
+    <section class="section section-dark" id="assistant">
+      <div class="container assistant-grid">
+        <div class="assistant-copy">
+          <span class="section-tag light">Assistant IA</span>
+          <h2 class="section-title light">Un expert stratégique disponible <span class="grad-text">24h/24</span></h2>
+          <p class="section-subtitle light">
+            Notre assistant n'est pas un simple chatbot : il est entraîné sur des milliers de parcours
+            entrepreneuriaux, capable de challenger vos idées, de détecter vos angles morts et de générer
+            vos premiers plans d'action.
+          </p>
+          <ul class="assistant-list">
+            <li>
+              <span class="assistant-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Validation de business model en minutes
+            </li>
+            <li>
+              <span class="assistant-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Analyse concurrentielle et de marché
+            </li>
+            <li>
+              <span class="assistant-check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </span>
+              Plans d'action stratégiques personnalisés
+            </li>
+          </ul>
+          <a class="btn btn-primary btn-lg" href="pages/signup.html">Essayer l'assistant gratuitement</a>
+        </div>
+
+        <div class="assistant-chat" aria-hidden="true">
+          <div class="chat-window">
+            <div class="chat-window-head">
+              <span class="chat-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+              </span>
+              <div>
+                <strong>Assistant IntelliTamed</strong>
+                <span class="online-dot">IA active</span>
+              </div>
+            </div>
+            <div class="chat-window-body">
+              <div class="msg msg-ai">
+                Bonjour ! Je suis votre assistant stratégique. Quelle idée souhaitez-vous valider aujourd'hui ?
+              </div>
+              <div class="msg msg-user">Je veux lancer une marketplace pour freelances créatifs.</div>
+              <div class="msg msg-ai">
+                Excellente piste. Analyse rapide : le segment B2B montre une traction <strong>30% supérieure</strong> au B2C sur ce créneau. Voici 3 actions prioritaires…
+              </div>
+            </div>
+            <div class="chat-window-input">
+              <span>Posez votre question à l'Assistant IA…</span>
+              <span class="chat-send">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STATS / TÉMOIGNAGES ================= -->
+    <section class="section" id="temoignages">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Témoignages</span>
+          <h2 class="section-title">Ils ont franchi le pas</h2>
+        </div>
+
+        <div class="stats-band">
+          <div class="stat-big">
+            <strong>500+</strong>
+            <span>Entrepreneurs accompagnés</span>
+          </div>
+          <div class="stat-big">
+            <strong>12,4k</strong>
+            <span>Idées analysées par l'IA</span>
+          </div>
+          <div class="stat-big">
+            <strong>98%</strong>
+            <span>De satisfaction utilisateurs</span>
+          </div>
+          <div class="stat-big">
+            <strong>24/7</strong>
+            <span>Assistant IA disponible</span>
+          </div>
+        </div>
+
+        <div class="testimonials-grid">
+          <figure class="testimonial">
+            <div class="stars" aria-label="5 étoiles sur 5">
+              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            </div>
+            <blockquote>
+              « J'ai validé mon concept en 48h au lieu de 3 mois. L'assistant a challengé mon business model
+              mieux que n'importe quel consultant. »
+            </blockquote>
+            <figcaption>
+              <span class="avatar">SL</span>
+              <div><strong>Sarah Lemoine</strong><small>Fondatrice · SaaS B2B</small></div>
+            </figcaption>
+          </figure>
+
+          <figure class="testimonial">
+            <div class="stars" aria-label="5 étoiles sur 5">
+              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            </div>
+            <blockquote>
+              « Les analyses prédictives m'ont fait pivoter au bon moment. Mon chiffre d'affaires a doublé
+              sur le trimestre. »
+            </blockquote>
+            <figcaption>
+              <span class="avatar">MK</span>
+              <div><strong>Mehdi Kaddour</strong><small>CEO · FinTech</small></div>
+            </figcaption>
+          </figure>
+
+          <figure class="testimonial">
+            <div class="stars" aria-label="5 étoiles sur 5">
+              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            </div>
+            <blockquote>
+              « Enfin une plateforme qui comprend les entrepreneurs. L'IA m'a trouvé un financement et un
+              partenaire technique. »
+            </blockquote>
+            <figcaption>
+              <span class="avatar">AC</span>
+              <div><strong>Aïcha Camara</strong><small>Indépendante · E-commerce</small></div>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TARIFS ================= -->
+    <section class="section section-pricing" id="tarifs">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-tag">Tarifs</span>
+          <h2 class="section-title">Une offre adaptée à votre ambition</h2>
+          <p class="section-subtitle">Commencez gratuitement, évoluez quand vous êtes prêt. Sans engagement.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <h3>Starter</h3>
+            <p class="pricing-desc">Pour valider votre première idée.</p>
+            <p class="pricing-price">0€<span>/mois</span></p>
+            <ul class="pricing-list">
+              <li>1 projet actif</li>
+              <li>Assistant IA (20 messages/jour)</li>
+              <li>1 analyse de marché</li>
+              <li>Plan d'action basique</li>
+            </ul>
+            <a class="btn btn-secondary btn-block" href="pages/signup.html">Commencer</a>
+          </article>
+
+          <article class="pricing-card featured">
+            <span class="pricing-popular">Le plus populaire</span>
+            <h3>Pro</h3>
+            <p class="pricing-desc">Pour les entrepreneurs qui accélèrent.</p>
+            <p class="pricing-price">49€<span>/mois</span></p>
+            <ul class="pricing-list">
+              <li>Projets illimités</li>
+              <li>Assistant IA illimité</li>
+              <li>Analyses prédictives avancées</li>
+              <li>Opportunités de marché priorisées</li>
+              <li>Export des rapports</li>
+            </ul>
+            <a class="btn btn-primary btn-block" href="pages/signup.html">Essai gratuit 14 jours</a>
+          </article>
+
+          <article class="pricing-card">
+            <h3>Entreprise</h3>
+            <p class="pricing-desc">Pour les équipes et les venture builders.</p>
+            <p class="pricing-price">199€<span>/mois</span></p>
+            <ul class="pricing-list">
+              <li>Tout le plan Pro</li>
+              <li>Collaborateurs & espaces partagés</li>
+              <li>API & intégrations</li>
+              <li>Support prioritaire 24/7</li>
+              <li>SSO & sécurité renforcée</li>
+            </ul>
+            <a class="btn btn-secondary btn-block" href="pages/signup.html">Contacter l'équipe</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FAQ ================= -->
+    <section class="section" id="faq">
+      <div class="container container-narrow">
+        <div class="section-head">
+          <span class="section-tag">FAQ</span>
+          <h2 class="section-title">Questions fréquentes</h2>
+        </div>
+
+        <div class="faq-list" data-faq>
+          <details class="faq-item" open>
+            <summary>Comment fonctionne l'analyse IA de mon projet ?</summary>
+            <p>Notre moteur traite plus de 450 points de données de marché pour générer un rapport stratégique complet : indice de validation, opportunités, risques, forces et faiblesses, et recommandations d'exécution.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Mes données sont-elles sécurisées ?</summary>
+            <p>Oui. Vos données et votre propriété intellectuelle sont protégées par des standards bancaires. Notre infrastructure est certifiée ISO 27001 et conforme RGPD, avec hébergement sécurisé.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Puis-je changer de plan à tout moment ?</summary>
+            <p>Absolument. Vous pouvez passer au plan Pro ou Entreprise à tout moment, ou revenir au plan Starter. Aucun engagement, annulation en deux clics.</p>
+          </details>
+          <details class="faq-item">
+            <summary>L'assistant IA remplace-t-il un consultant ?</summary>
+            <p>L'assistant IA est un accélérateur : il vous permet de challenger vos idées, de structurer votre réflexion et de générer des plans d'action 24h/24. Pour les décisions structurantes, il reste recommandé de croiser avec des experts humains.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CTA FINAL ================= -->
+    <section class="section cta-final">
+      <div class="container cta-card">
+        <h2>Prêt à transformer votre vision en réalité ?</h2>
+        <p>Rejoignez la nouvelle génération d'entrepreneurs qui utilisent l'IA pour valider, construire et faire évoluer leurs projets.</p>
+        <div class="cta-actions">
+          <a class="btn btn-primary btn-lg" href="pages/signup.html">Créer mon compte gratuit</a>
+          <a class="btn btn-ghost btn-lg cta-demo" href="pages/login.html">Voir un exemple de dashboard</a>
+        </div>
+        <p class="cta-note">Essai gratuit de 14 jours · Aucune carte de crédit requise</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="landing-footer">
+    <div class="container landing-footer-grid">
+      <div class="landing-footer-brand">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          </span>
+          <span class="brand-name">IntelliTamed</span>
+        </a>
+        <p>Tame Intelligence. Shape the Future.</p>
+        <p class="landing-footer-copy">© 2024 IntelliTamed — Plateforme de Venture Building par IA</p>
+      </div>
+      <nav class="landing-footer-col" aria-label="Produit">
+        <h4>Produit</h4>
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="pages/dashboard.html">Dashboard</a>
+        <a href="pages/assistant.html">Assistant IA</a>
+      </nav>
+      <nav class="landing-footer-col" aria-label="Ressources">
+        <h4>Ressources</h4>
+        <a href="#faq">FAQ</a>
+        <a href="#temoignages">Témoignages</a>
+        <a href="pages/opportunities.html">Opportunités</a>
+        <a href="pages/project-analysis.html">Analyses</a>
+      </nav>
+      <nav class="landing-footer-col" aria-label="Légal">
+        <h4>Légal</h4>
+        <a href="#">Confidentialité</a>
+        <a href="#">Conditions d'utilisation</a>
+        <a href="#">Mentions légales</a>
+        <a href="#">RGPD</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    /* Navigation mobile + navbar au scroll (landing uniquement) */
+    document.addEventListener("DOMContentLoaded", function () {
+      var burger = document.querySelector("[data-nav-toggle]");
+      var menu = document.querySelector("[data-mobile-menu]");
+      if (burger && menu) {
+        burger.addEventListener("click", function () {
+          var open = menu.hidden;
+          menu.hidden = !open;
+          burger.setAttribute("aria-expanded", String(open));
+          burger.classList.toggle("is-open", open);
+        });
+      }
+
+      var nav = document.getElementById("navbar");
+      var onScroll = function () {
+        if (window.scrollY > 10) nav.classList.add("scrolled");
+        else nav.classList.remove("scrolled");
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    });
+  </script>
+</body>
+</html>

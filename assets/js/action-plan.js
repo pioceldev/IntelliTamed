@@ -1,0 +1,307 @@
+/* ============================================================
+   IntelliTamed — Plan d'action
+   Phases, tâches, progression (localStorage)
+   ============================================================ */
+
+(function () {
+  "use strict";
+
+  var PHASES = [
+    { id: "phase-1", label: "Phase 1 : Validation du concept", short: "Validation" },
+    { id: "phase-2", label: "Phase 2 : Architecture technique", short: "Architecture" },
+    { id: "phase-3", label: "Phase 3 : Développement & test", short: "Développement" },
+    { id: "phase-4", label: "Phase 4 : Lancement", short: "Lancement" }
+  ];
+
+  var PRIORITY_LABELS = { high: "Haute", medium: "Moyenne", low: "Basse" };
+
+  var tasks = {}; // phaseId -> [task]
+  var activeTaskId = null;
+
+  function $(sel) { return document.querySelector(sel); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  function loadTasks() {
+    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
+    tasks = store.tasks || {};
+  }
+  function persistTasks() {
+    var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
+    store.tasks = tasks;
+    if (window.IntelliApp) window.IntelliApp.saveStore(store);
+  }
+
+  function allTasks() {
+    var out = [];
+    PHASES.forEach(function (p) { (tasks[p.id] || []).forEach(function (t) { out.push(t); }); });
+    return out;
+  }
+
+  /* ---------- Rendu ---------- */
+  function renderPhases() {
+    var container = $("#plan-phases");
+    if (!container) return;
+    var search = ($("#plan-search") || {}).value ? $("#plan-search").value.toLowerCase() : "";
+
+    container.innerHTML = PHASES.map(function (phase) {
+      var list = (tasks[phase.id] || []).filter(function (t) {
+        if (!search) return true;
+        return (t.title + " " + t.category).toLowerCase().indexOf(search) !== -1;
+      });
+      var total = (tasks[phase.id] || []).length;
+      var done = list.filter(function (t) { return t.done; }).length;
+      var pct = total ? Math.round((done / total) * 100) : 0;
+      var complete = total > 0 && done === total;
+
+      var rows = list.length ? list.map(function (t) {
+        return taskRowHTML(phase.id, t);
+      }).join("") : '<p class="task-detail-empty" style="padding:16px 0;">Aucune étape ne correspond à votre recherche.</p>';
+
+      return '<section class="card phase-card">' +
+        '<div class="card-header">' +
+          '<div class="phase-title' + (complete ? " is-complete" : "") + '">' +
+            '<span class="phase-check">' + (complete ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"/></svg>' : phase.short.charAt(0)) + '</span>' +
+            esc(phase.label) +
+          '</div>' +
+          '<button class="btn btn-ghost btn-sm phase-details-btn" type="button" data-toast="Détails de la phase — démonstration frontend.">Voir détails</button>' +
+        '</div>' +
+        '<div class="phase-progress-row">' +
+          '<div class="progress"><div class="progress-bar" style="width:' + pct + '%"></div></div>' +
+          '<span>' + done + '/' + total + '</span>' +
+        '</div>' +
+        '<div class="phase-tasks">' + rows + '</div>' +
+      '</section>';
+    }).join("");
+  }
+
+  function taskRowHTML(phaseId, t) {
+    var priorityClass = "priority-" + (t.priority || "medium");
+    var isActive = t.id === activeTaskId;
+    return '<div class="phase-task' + (isActive ? " is-active" : "") + '" data-task="' + t.id + '" data-phase="' + phaseId + '">' +
+      '<label class="task-check-label" style="display:flex;">' +
+        '<input type="checkbox" data-toggle-done="' + t.id + '"' + (t.done ? " checked" : "") + '>' +
+        '<span class="task-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>' +
+      '</label>' +
+      '<div class="task-body' + (t.done ? " is-done" : "") + '">' +
+        '<strong>' + esc(t.title) + '</strong>' +
+        '<p class="task-desc">' + esc(t.desc || "") + '</p>' +
+        '<div class="task-tags">' +
+          '<span class="chip chip-gray">' + esc(t.category || "") + '</span>' +
+          '<span class="chip chip-blue">' + esc(PRIORITY_LABELS[t.priority] || "") + '</span>' +
+          '<span class="task-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + esc(t.time || "") + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<button class="task-del" type="button" data-del-task="' + t.id + '" aria-label="Supprimer la tâche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+    '</div>';
+  }
+
+  /* ---------- Détail de la tâche ---------- */
+  function renderTaskDetail() {
+    var content = $("#task-detail-content");
+    var category = $("#task-detail-category");
+    if (!content) return;
+
+    var task = findTask(activeTaskId);
+    if (!task) {
+      content.innerHTML = '<p class="task-detail-empty">Cliquez sur une étape pour afficher ses actions de validation et sa documentation.</p>';
+      if (category) category.textContent = "Sélectionnez une étape";
+      return;
+    }
+    if (category) category.textContent = "Catégorie : " + esc(task.category || "");
+
+    var validations = task.validations || [
+      "Réviser les documents sources",
+      "Générer le rapport préliminaire",
+      "Soumettre pour validation IA"
+    ];
+
+    content.innerHTML =
+      '<h3 class="task-detail-title">' + esc(task.title) + '</h3>' +
+      '<p class="task-detail-desc">' + esc(task.desc || "") + '</p>' +
+      '<div class="task-detail-meta">' +
+        '<span class="chip chip-gray">' + esc(task.category || "") + '</span>' +
+        '<span class="chip chip-blue">Priorité : ' + esc(PRIORITY_LABELS[task.priority] || "") + '</span>' +
+        '<span class="chip chip-violet">' + esc(task.time || "") + '</span>' +
+      '</div>' +
+      '<p class="validation-title">Actions de validation</p>' +
+      '<div class="validation-list">' +
+        validations.map(function (v, i) {
+          return '<label class="validation-item">' +
+            '<input type="checkbox" data-validation>' +
+            '<span class="validation-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>' +
+            '<span>' + esc(v) + '</span>' +
+          '</label>';
+        }).join("") +
+      '</div>' +
+      '<div class="task-detail-actions">' +
+        '<button class="btn btn-secondary" type="button" data-toast="Documentation générée pour cette étape.">Documentation IA</button>' +
+        '<button class="btn btn-primary" type="button" data-mark-done="' + task.id + '">' + (task.done ? "Marquer comme à faire" : "Marquer comme terminée") + '</button>' +
+      '</div>';
+  }
+
+  function findTask(id) {
+    var found = null;
+    PHASES.forEach(function (p) {
+      (tasks[p.id] || []).forEach(function (t) {
+        if (t.id === id) found = t;
+      });
+    });
+    return found;
+  }
+
+  function phaseOfTask(id) {
+    var found = null;
+    PHASES.forEach(function (p) {
+      (tasks[p.id] || []).forEach(function (t) {
+        if (t.id === id) found = p.id;
+      });
+    });
+    return found;
+  }
+
+  /* ---------- Progression globale ---------- */
+  function updateProgress() {
+    var all = allTasks();
+    var done = all.filter(function (t) { return t.done; }).length;
+    var remaining = all.length - done;
+    var pct = all.length ? Math.round((done / all.length) * 100) : 0;
+
+    var ring = document.querySelector("[data-chart][data-plan-ring]");
+    var doneEl = $("#plan-done-count");
+    var remainingEl = $("#plan-remaining-count");
+
+    if (doneEl) doneEl.textContent = done;
+    if (remainingEl) remainingEl.textContent = remaining;
+
+    // Mettre à jour l'anneau (recréer)
+    var ringContainer = document.querySelector(".plan-ring > [data-chart]");
+    if (ringContainer) {
+      ringContainer.innerHTML = "";
+      if (window.IntelliCharts) window.IntelliCharts.ring(ringContainer, pct, { size: 88, thickness: 9 });
+    }
+
+    // Milestone
+    var remainingToMilestone = Math.max(0, 3 - done);
+    var milestoneText = $("#milestone-text");
+    if (milestoneText) {
+      if (remainingToMilestone === 0) {
+        milestoneText.innerHTML = "Félicitations ! Vous avez débloqué <strong>l'analyse de marché avancée</strong>.";
+      } else {
+        milestoneText.innerHTML = "Terminez encore <strong>" + remainingToMilestone + " tâche" + (remainingToMilestone > 1 ? "s" : "") + "</strong> pour débloquer l'analyse de marché avancée.";
+      }
+    }
+    var milestoneBar = $("#milestone-bar");
+    if (milestoneBar) {
+      var progressToMilestone = Math.min(100, Math.round((done / 3) * 100));
+      milestoneBar.style.width = progressToMilestone + "%";
+    }
+  }
+
+  /* ---------- Événements ---------- */
+  document.addEventListener("DOMContentLoaded", function () {
+    loadTasks();
+    renderPhases();
+    renderTaskDetail();
+    updateProgress();
+
+    $("#plan-search").addEventListener("input", renderPhases);
+
+    // Clic sur une tâche : sélectionner + détail
+    document.addEventListener("click", function (e) {
+      var taskEl = e.target.closest("[data-task]");
+      if (taskEl && !e.target.closest("[data-toggle-done]") && !e.target.closest("[data-del-task]")) {
+        activeTaskId = taskEl.getAttribute("data-task");
+        renderPhases();
+        renderTaskDetail();
+        return;
+      }
+
+      // Suppression
+      var delBtn = e.target.closest("[data-del-task]");
+      if (delBtn) {
+        e.stopPropagation();
+        var id = delBtn.getAttribute("data-del-task");
+        var phase = phaseOfTask(id);
+        if (phase && tasks[phase]) {
+          tasks[phase] = tasks[phase].filter(function (t) { return t.id !== id; });
+          if (activeTaskId === id) activeTaskId = null;
+          persistTasks();
+          renderPhases();
+          renderTaskDetail();
+          updateProgress();
+          if (window.IntelliApp) window.IntelliApp.showToast("Étape supprimée.");
+        }
+        return;
+      }
+
+      // Marquer terminée (depuis le détail)
+      var markBtn = e.target.closest("[data-mark-done]");
+      if (markBtn) {
+        var t = findTask(markBtn.getAttribute("data-mark-done"));
+        if (t) {
+          t.done = !t.done;
+          persistTasks();
+          renderPhases();
+          renderTaskDetail();
+          updateProgress();
+          if (window.IntelliApp) {
+            window.IntelliApp.showToast(t.done ? "Étape marquée comme terminée 🎉" : "Étape remise à faire.", "success");
+          }
+        }
+        return;
+      }
+    });
+
+    // Cocher / décocher (délégation change)
+    document.addEventListener("change", function (e) {
+      var cb = e.target.closest("[data-toggle-done]");
+      if (!cb) return;
+      var id = cb.getAttribute("data-toggle-done");
+      var t = findTask(id);
+      if (t) {
+        t.done = cb.checked;
+        persistTasks();
+        renderPhases();
+        renderTaskDetail();
+        updateProgress();
+      }
+    });
+
+    // Ajout d'une étape
+    $("#task-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var title = $("#t-title").value.trim();
+      var errEl = document.querySelector("[data-error-for='t-title']");
+      if (!title) {
+        $("#t-title").classList.add("is-invalid");
+        if (errEl) { errEl.textContent = "Veuillez saisir un titre."; errEl.classList.add("is-visible"); }
+        return;
+      }
+      $("#t-title").classList.remove("is-invalid");
+      if (errEl) { errEl.textContent = ""; errEl.classList.remove("is-visible"); }
+
+      var phaseId = $("#t-phase").value;
+      if (!tasks[phaseId]) tasks[phaseId] = [];
+      var newTask = {
+        id: "t" + Date.now(),
+        title: title,
+        desc: $("#t-desc").value.trim(),
+        category: $("#t-category").value,
+        priority: $("#t-priority").value,
+        time: $("#t-time").value.trim() || "2h",
+        done: false
+      };
+      tasks[phaseId].push(newTask);
+      persistTasks();
+      renderPhases();
+      updateProgress();
+      if (window.IntelliApp) {
+        window.IntelliApp.closeModal(document.getElementById("task-modal"));
+        window.IntelliApp.showToast("Étape ajoutée au plan.", "success");
+      }
+      $("#t-title").value = "";
+      $("#t-desc").value = "";
+      $("#t-time").value = "";
+    });
+  });
+})();
