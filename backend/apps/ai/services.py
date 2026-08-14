@@ -136,24 +136,65 @@ class GeminiService:
             f"Progression : {project.progress}%\n\n"
             "Chaque liste contient 3 à 5 éléments concrets et actionnables en français."
         )
-        raw = GeminiService.generate(prompt, max_tokens=2048)
+        raw = GeminiService.generate(prompt, max_tokens=8192)
         parsed = GeminiService._parse_json(raw)
         return GeminiService._validate_analysis(parsed)
 
     @staticmethod
     def _parse_json(raw):
-        """Extrait le premier objet JSON valide d'une réponse (filtre le texte autour)."""
+        """Extrait un objet JSON valide d'une réponse (texte autour + troncature tolérés)."""
         raw = raw.strip()
+        decoder = json.JSONDecoder()
+
+        # 1. JSON pur
         try:
             return json.loads(raw)
         except json.JSONDecodeError:
             pass
+
+        # 2. Objet JSON noyé dans du texte (```json ... ```, markdown…)
         match = re.search(r"\{.*\}", raw, re.S)
         if match:
             try:
                 return json.loads(match.group(0))
             except json.JSONDecodeError:
                 pass
+
+        # 3. Réponse tronquée : on coupe au niveau de bornes plausibles et
+        #    on referme les conteneurs ouverts (heuristic — l'IA ne doit
+        #    jamais être trustée à 100 %, on valide ensuite).
+        def _close_containers(text):
+            depth_curly = depth_square = 0
+            in_string = False
+            escape = False
+            for ch in text:
+                if escape:
+                    escape = False
+                    continue
+                if ch == "\\":
+                    escape = True
+                    continue
+                if ch == '"':
+                    in_string = not in_string
+                elif not in_string:
+                    if ch == "{":
+                        depth_curly += 1
+                    elif ch == "}" and depth_curly:
+                        depth_curly -= 1
+                    elif ch == "[":
+                        depth_square += 1
+                    elif ch == "]" and depth_square:
+                        depth_square -= 1
+            return text + "}" * depth_curly + "]" * depth_square
+
+        candidates = [i for i, ch in enumerate(raw) if ch in '",}]' or ch == chr(10) and i > 0]
+        for cut in reversed(candidates):
+            prefix = _close_containers(raw[:cut].rstrip(","))
+            try:
+                obj, _ = decoder.raw_decode(prefix.lstrip())
+                return obj
+            except json.JSONDecodeError:
+                continue
         return {}
 
     @staticmethod
@@ -161,11 +202,15 @@ class GeminiService:
         """Valide/normalise les champs — ne fait jamais confiance aveuglément à l'IA."""
         if not isinstance(data, dict):
             data = {}
-        for key in GeminiService.ANALYSIS_KEYS:
+        # summary est une chaîne ; les autres champs sont des listes
+        raw_summary = data.get("summary", "")
+        if isinstance(raw_summary, list):
+            raw_summary = " ".join(str(i) for i in raw_summary)
+        data["summary"] = str(raw_summary)[:4000]
+        for key in GeminiService.ANALYSIS_KEYS[1:]:
             if key not in data:
                 data[key] = []
             if not isinstance(data[key], list):
                 data[key] = [str(data[key])]
             data[key] = [str(item)[:2000] for item in data[key][:6]]
-        data["summary"] = str(data.get("summary", ""))[:4000]
         return data
