@@ -237,6 +237,23 @@
   display: none;
 }
 
+/* Alerte globale du formulaire (erreurs API) */
+.form-alert {
+  display: none;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  font-size: var(--font-size-sm);
+  color: var(--error);
+  line-height: 1.5;
+}
+
+.form-alert.is-visible {
+  display: block;
+}
+
 /* Grille 2 colonnes */
 .form-row-2 {
   display: grid;

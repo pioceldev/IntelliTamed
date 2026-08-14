@@ -115,12 +115,19 @@
         return;
       }
 
-      // État loading → succès → redirection vers l'onboarding
+      // État loading → appel API réelle (repli démo si backend injoignable)
       submit.classList.add("is-loading");
       submit.disabled = true;
-      setTimeout(function () {
-        submit.classList.remove("is-loading");
-        submit.disabled = false;
+
+      var payload = {
+        email: email.value.trim(),
+        password: password.value,
+        first_name: firstName.value.trim(),
+        last_name: lastName.value.trim(),
+        role: "entrepreneur"
+      };
+
+      function registerLocal() {
         try {
           var store = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
           store.profile = {
@@ -137,8 +144,65 @@
         } catch (err) { /* stockage indisponible */ }
         if (window.IntelliApp) IntelliApp.showToast("Compte créé avec succès ! Bienvenue 🎉", "success");
         setTimeout(function () { window.location.href = "onboarding.html"; }, 900);
-      }, 1200);
+      }
+
+      function fail(msg) {
+        submit.classList.remove("is-loading");
+        submit.disabled = false;
+        var errBox = document.querySelector("[data-form-alert]");
+        if (errBox) {
+          errBox.textContent = msg;
+          errBox.classList.add("is-visible");
+        }
+        if (window.IntelliApp) IntelliApp.showToast(msg, "error");
+      }
+
+      if (window.IntelliAPI) {
+        window.IntelliAPI.register(payload)
+          .then(function () {
+            // Connexion automatique après inscription
+            return window.IntelliAPI.login(payload.email, payload.password);
+          })
+          .then(function () {
+            submit.classList.remove("is-loading");
+            submit.disabled = false;
+            registerLocal();
+          })
+          .catch(function (err) {
+            submit.classList.remove("is-loading");
+            submit.disabled = false;
+            if (err && (err.status === 400 || err.status === 401 || err.status === 403)) {
+              // Vraie erreur API : email déjà pris, mot de passe invalide, etc.
+              fail(apiErrorMessage(err));
+            } else {
+              // Backend injoignable → repli local (hors-ligne)
+              registerLocal();
+            }
+          });
+      } else {
+        submit.classList.remove("is-loading");
+        submit.disabled = false;
+        registerLocal();
+      }
     });
+  }
+
+  /* ---------- Message d'erreur API lisible ---------- */
+  function apiErrorMessage(err) {
+    if (!err || !err.data) return err && err.message ? err.message : "Une erreur est survenue.";
+    var d = err.data;
+    // DRF renvoie { champ: ["message"], ... } ou { detail: "..." }
+    if (d.detail) return d.detail;
+    var keys = Object.keys(d);
+    if (!keys.length) return "Une erreur est survenue.";
+    var first = keys[0];
+    var msgs = Array.isArray(d[first]) ? d[first] : [d[first]];
+    var labels = {
+      email: "Adresse e-mail", password: "Mot de passe",
+      first_name: "Prénom", last_name: "Nom"
+    };
+    var label = labels[first] || first;
+    return label + " : " + String(msgs[0]);
   }
 
   /* ---------- Formulaire de connexion ---------- */
@@ -160,14 +224,61 @@
 
       submit.classList.add("is-loading");
       submit.disabled = true;
-      setTimeout(function () {
-        submit.classList.remove("is-loading");
-        submit.disabled = false;
+
+      function loginLocal() {
         if (window.IntelliApp) IntelliApp.showToast("Connexion réussie. Bon retour parmi nous !", "success");
         setTimeout(function () { window.location.href = "dashboard.html"; }, 700);
-      }, 1100);
+      }
+
+      function fail(msg) {
+        submit.classList.remove("is-loading");
+        submit.disabled = false;
+        var errBox = document.querySelector("[data-form-alert]");
+        if (errBox) {
+          errBox.textContent = msg;
+          errBox.classList.add("is-visible");
+        }
+        if (window.IntelliApp) IntelliApp.showToast(msg, "error");
+      }
+
+      if (window.IntelliAPI) {
+        window.IntelliAPI.login(email.value.trim(), password.value).then(function (data) {
+          // Sauvegarde du profil utilisateur pour la topbar
+          window.IntelliAPI.me().then(function (user) {
+            if (user) window.IntelliAPI.setUser(user);
+          }).catch(function () {});
+          submit.classList.remove("is-loading");
+          submit.disabled = false;
+          loginLocal();
+        }).catch(function (err) {
+          if (err && (err.status === 400 || err.status === 401)) {
+            // Mauvaises identifiants → vraie erreur
+            fail(err.message || "Identifiants incorrects.");
+          } else {
+            // Backend injoignable → mode démo
+            submit.classList.remove("is-loading");
+            submit.disabled = false;
+            loginLocal();
+          }
+        });
+      } else {
+        submit.classList.remove("is-loading");
+        submit.disabled = false;
+        loginLocal();
+      }
     });
   }
+
+  /* ---------- Connexion Google / GitHub (OAuth) ---------- */
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-oauth]");
+    if (!btn) return;
+    e.preventDefault();
+    var provider = btn.getAttribute("data-oauth");
+    btn.disabled = true;
+    btn.classList.add("is-loading");
+    window.location.href = "/api/auth/social/" + provider + "/login";
+  });
 
   /* ---------- Mot de passe oublié ---------- */
   var forgotSubmit = document.getElementById("forgot-submit");

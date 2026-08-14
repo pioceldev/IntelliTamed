@@ -1,9 +1,12 @@
 """Vues des comptes : inscription, profil, onboarding, stats admin."""
 from django.db.models import Count
 from django.utils import timezone
+from django.http import HttpResponseRedirect
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .oauth import FRONTEND_BASE, OAuthError, build_authorize_url, exchange_and_get_user
 
 from apps.ai.models import AIRequest
 from apps.action_plans.models import ActionPlan
@@ -62,6 +65,43 @@ class OnboardingView(APIView):
         profile.onboarding_completed = True
         profile.save()
         return Response(ProfileSerializer(profile).data, status=status.HTTP_200_OK)
+
+
+class SocialLoginView(APIView):
+    """OAuth Google / GitHub — login + inscription via un fournisseur externe.
+
+    Flux :
+      GET /api/auth/social/{provider}/login      → redirige vers le fournisseur
+      GET /api/auth/social/{provider}/callback   → échange le code, redirige vers
+          /pages/oauth-callback.html?access=...&refresh=...&new=1|0
+    """
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []  # pas de JWT requis (pré-authentification)
+    throttle_scope = "login"
+
+    def _is_callback(self, request):
+        return request.path.rstrip("/").endswith("/callback")
+
+    def get(self, request, provider):
+        if self._is_callback(request):
+            # Retour du fournisseur : échange du code → redirection frontend
+            try:
+                user, created, url = exchange_and_get_user(provider, request)
+            except OAuthError as exc:
+                from urllib.parse import quote
+                dest = f"{FRONTEND_BASE}/pages/login.html?oauth_error={quote(str(exc))}"
+                return HttpResponseRedirect(dest)
+            return HttpResponseRedirect(url)
+
+        # Début du flux : redirige vers le fournisseur (ou login.html si non configuré)
+        try:
+            url = build_authorize_url(provider, request)
+        except OAuthError as exc:
+            from urllib.parse import quote
+            dest = f"{FRONTEND_BASE}/pages/login.html?oauth_error={quote(str(exc))}"
+            return HttpResponseRedirect(dest)
+        return HttpResponseRedirect(url)
 
 
 class AdminStatsView(APIView):

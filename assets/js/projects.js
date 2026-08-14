@@ -33,6 +33,15 @@
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
+  // Mapping statuts Django → statuts de l'interface
+  var STATUS_MAP = {
+    idea: "planned",
+    preparation: "in-progress",
+    development: "in-progress",
+    launched: "done",
+    growth: "done"
+  };
+
   function loadProjects() {
     var store = window.IntelliApp ? window.IntelliApp.loadStore() : { projects: [] };
     projects = (store.projects || []).slice();
@@ -41,6 +50,33 @@
     var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
     store.projects = projects;
     if (window.IntelliApp) window.IntelliApp.saveStore(store);
+  }
+
+  // Charge les projets depuis le backend Django si l'utilisateur est connecté
+  function syncProjectsFromApi() {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+    window.IntelliAPI.listProjects().then(function (data) {
+      if (!data || !data.results) return;
+      var remote = data.results.map(function (p) {
+        return {
+          id: "PRJ-" + String(p.id).padStart(3, "0"),
+          apiId: p.id,
+          name: p.name,
+          category: p.category || "Stratégie",
+          status: STATUS_MAP[p.status] || "in-progress",
+          priority: p.progress >= 60 ? "high" : (p.progress >= 30 ? "medium" : "low"),
+          progress: p.progress || 0,
+          team: "—",
+          due: p.due_date ? p.due_date.slice(0, 10) : "À définir"
+        };
+      });
+      if (remote.length) {
+        projects = remote;
+        persistProjects();
+        renderTable();
+        renderRoadmap();
+      }
+    }).catch(function () { /* backend injoignable → données locales */ });
   }
 
   var CATEGORY_ICONS = {
@@ -187,6 +223,7 @@
     loadProjects();
     renderTable();
     renderRoadmap();
+    syncProjectsFromApi();
 
     // Recherche & filtres
     $("#project-search").addEventListener("input", function () {

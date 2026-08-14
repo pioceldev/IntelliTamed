@@ -37,6 +37,15 @@
       if (e.target.closest("[data-close-sidebar]")) closeSidebar();
     });
 
+    // 2bis. Déconnexion (JWT) — clic sur [data-logout]
+    document.addEventListener("click", function (e) {
+      var logout = e.target.closest("[data-logout]");
+      if (!logout) return;
+      e.preventDefault();
+      if (window.IntelliAPI) window.IntelliAPI.logout();
+      window.location.href = "login.html";
+    });
+
     // 3. Menu utilisateur
     document.querySelectorAll("[data-user-menu]").forEach(function (menu) {
       var trigger = menu.querySelector(".user-menu-trigger");
@@ -114,7 +123,7 @@
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
           e.preventDefault();
-          showToast("Recherche « " + input.value + " » — démonstration frontend.", "info");
+          showToast("Recherche « " + input.value + " ».", "info");
           input.value = "";
           input.blur();
         }
@@ -178,46 +187,22 @@
   /* ---------- Store (démo, localStorage) ---------- */
   var STORE_KEY = "intellitamed_store_v1";
 
+  // Données initiales VIDE — plus aucune donnée statique/démo.
+  // Les pages se remplissent via l'API (assets/js/api.js) ;
+  // en l'absence de backend, elles affichent leurs états vides.
   var DEFAULTS = {
     profile: {
-      firstName: "Jean",
-      lastName: "Dupont",
-      email: "jean.dupont@intellitamed.io",
-      role: "Entrepreneur Tech",
-      bio: "Passionné par l'IA et le développement de solutions innovantes pour les entrepreneurs de demain.",
-      website: "https://votre-site.com",
-      linkedin: "linkedin.com/in/votre-nom",
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "",
+      bio: "",
+      website: "",
+      linkedin: "",
       avatar: null
     },
-    projects: [
-      { id: "PRJ-001", name: "Expansion Marché IA Europe", category: "Stratégie", status: "in-progress", priority: "high", progress: 65, team: "4", due: "15 oct 2024" },
-      { id: "PRJ-002", name: "Optimisation Supply Chain", category: "Opérations", status: "planned", priority: "medium", progress: 45, team: "6", due: "02 nov 2024" },
-      { id: "PRJ-003", name: "Plateforme E-commerce V2", category: "Technologie", status: "late", priority: "high", progress: 40, team: "8", due: "28 sept 2024" },
-      { id: "PRJ-004", name: "Refonte Identité Visuelle", category: "Marketing", status: "done", priority: "low", progress: 100, team: "2", due: "10 sept 2024" },
-      { id: "PRJ-005", name: "Analyse Prédictive Client", category: "IA / Data", status: "in-progress", priority: "medium", progress: 30, team: "5", due: "20 oct 2024" }
-    ],
-    tasks: {
-      "phase-1": [
-        { id: "t1", title: "Analyse comparative des concurrents", desc: "Identifier les 5 principaux concurrents directs et analyser leur proposition de valeur unique (USP).", category: "Stratégique", priority: "high", time: "4h", done: true },
-        { id: "t2", title: "Définition du Persona Entrepreneurial", desc: "Créer 3 profils types d'utilisateurs pour la plateforme IntelliTamed.", category: "Opérationnel", priority: "medium", time: "2h", done: true },
-        { id: "t3", title: "Vérification de la conformité RGPD", desc: "Audit initial des flux de données pour le traitement des données utilisateurs par l'IA.", category: "Juridique", priority: "high", time: "6h", done: true },
-        { id: "t4", title: "Enquête clients — 10 entretiens", desc: "Réaliser 10 entretiens clients pour confirmer le problème et la proposition de valeur.", category: "Opérationnel", priority: "high", time: "8h", done: false }
-      ],
-      "phase-2": [
-        { id: "t5", title: "Sélection de la pile LLM", desc: "Comparer GPT-4, Claude 3 et des modèles open-source locaux pour le moteur d'analyse.", category: "Technique", priority: "high", time: "8h", done: false },
-        { id: "t6", title: "Maquettage de l'interface Dashboard", desc: "Concevoir les widgets de visualisation de données pour les entrepreneurs.", category: "Technique", priority: "medium", time: "12h", done: true },
-        { id: "t7", title: "Environnement de développement", desc: "Mettre en place le repository, la CI/CD et les environnements de staging.", category: "Technique", priority: "low", time: "4h", done: false }
-      ],
-      "phase-3": [
-        { id: "t8", title: "Développement du MVP", desc: "Développer les fonctionnalités cœur du produit avec les spécifications validées.", category: "Technique", priority: "high", time: "40h", done: false },
-        { id: "t9", title: "Tests utilisateurs bêta", desc: "Lancer le programme bêta avec 30 utilisateurs et collecter les retours.", category: "Opérationnel", priority: "medium", time: "10h", done: false }
-      ],
-      "phase-4": [
-        { id: "t10", title: "Campagne de lancement", desc: "Préparer et lancer la campagne marketing multi-canaux.", category: "Marketing", priority: "high", time: "6h", done: false },
-        { id: "t11", title: "Préparation du pitch investisseurs", desc: "Construire le pitch deck et répéter la présentation investisseurs.", category: "Stratégique", priority: "high", time: "8h", done: false },
-        { id: "t12", title: "Analyse post-lancement", desc: "Mesurer les premiers KPIs et itérer sur le produit.", category: "Data", priority: "medium", time: "4h", done: false }
-      ]
-    },
+    projects: [],
+    tasks: {},
     conversations: [],
     watchlist: [],
     onboarding: null

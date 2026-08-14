@@ -112,6 +112,11 @@ def _database_from_url(url):
         engine, port = "django.db.backends.mysql", port or "3306"
     else:
         raise ValueError("DATABASE_URL non supporté : " + url)
+    options = {}
+    if engine == "django.db.backends.mysql":
+        # WAMP/XAMPP utilisent MyISAM par défaut — InnoDB est requis
+        # pour les index utf8mb4 (clés longues) et les FK.
+        options["init_command"] = "SET default_storage_engine=InnoDB"
     return {
         "ENGINE": engine,
         "NAME": dbname or "intellitamed",
@@ -120,6 +125,7 @@ def _database_from_url(url):
         "HOST": host or "localhost",
         "PORT": port,
         "CONN_MAX_AGE": 60,
+        "OPTIONS": options,
     }
 
 DATABASES = {"default": _database_from_url(os.environ.get("DATABASE_URL", ""))}

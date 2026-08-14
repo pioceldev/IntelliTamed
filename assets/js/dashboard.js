@@ -6,14 +6,20 @@
   "use strict";
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Salutation personnalisée depuis le profil
-    try {
-      var store = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
-      var profile = store.profile || {};
-      var firstName = profile.firstName || "Jean";
-      var greeting = document.getElementById("dashboard-greeting");
-      if (greeting) greeting.textContent = "Bonjour, " + firstName + " 👋";
-    } catch (e) { /* noop */ }
+    // Salutation personnalisée : utilisateur JWT puis profil local
+    var firstName = "Jean";
+    var apiUser = window.IntelliAPI && window.IntelliAPI.getUser ? window.IntelliAPI.getUser() : null;
+    if (apiUser && apiUser.first_name) {
+      firstName = apiUser.first_name;
+    } else {
+      try {
+        var store = JSON.parse(localStorage.getItem("intellitamed_store_v1") || "{}");
+        var profile = store.profile || {};
+        firstName = profile.firstName || "Jean";
+      } catch (e) { /* noop */ }
+    }
+    var greeting = document.getElementById("dashboard-greeting");
+    if (greeting) greeting.textContent = "Bonjour, " + firstName + " 👋";
 
     // Tâches mini : cocher met à jour le compteur
     var tasks = Array.prototype.slice.call(document.querySelectorAll("[data-task-item]"));

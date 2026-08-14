@@ -1,12 +1,11 @@
 /* ============================================================
    IntelliTamed — Assistant IA
-   Chat fonctionnel côté frontend, branché sur le backend
-   server/server.js qui relaie vers l'API Gemini.
-   - POST /api/assistant (proxy serveur, clé API côté backend)
+   Chat fonctionnel branché sur l'API Django (backend/) qui relaie
+   vers l'API Gemini (clé côté serveur, jamais dans le frontend).
+   - POST /api/assistant (conversation persistée + contexte)
    - GET  /api/health   (état de la connexion)
-   En cas de backend injoignable → repli automatique sur des
-   réponses simulées (« Mode démo ») pour que la démo reste
-   utilisable hors-ligne.
+   Aucune réponse simulée : en cas de backend injoignable, un
+   message d'erreur clair est affiché.
    ============================================================ */
 
 (function () {
@@ -15,114 +14,10 @@
   var STORE_KEY = "intellitamed_assistant_v1";
 
   /* ============================================================
-     REPLI « MODE DÉMO » — utilisé uniquement si le backend
-     /api/assistant est injoignable (ouverture en file://, serveur
-     arrêté, etc.). En mode connecté, le vrai appel part vers
-     server/server.js qui relaie vers l'API Gemini (clé côté serveur).
+     Aucune réponse simulée : les réponses viennent UNIQUEMENT du
+     backend (API Django → Gemini). Si le backend est injoignable,
+     un message d'erreur clair est affiché à l'utilisateur.
      ============================================================ */
-  function getMockReply(userText) {
-    var t = userText.toLowerCase();
-
-    // Déclencheur d'état erreur (pour la démo de l'UI d'erreur)
-    if (t.indexOf("erreur") !== -1 || t.indexOf("error") !== -1) {
-      throw new Error("Service IA temporairement indisponible (simulation).");
-    }
-
-    if (t.indexOf("analyse de march") !== -1 || t.indexOf("tendance") !== -1 || t.indexOf("marché") !== -1) {
-      return "Voici mon analyse de marché :\n\n" +
-        "• **Secteur Tech B2B** : croissance annuelle de +18%, portée par la demande d'outils SaaS et d'automatisation.\n" +
-        "• **Segment porteur** : les PME de 10 à 50 salariés, où la maturité digitale explose.\n" +
-        "• **Risque clé** : concurrence forte sur le pricing — différenciez-vous par la valeur démontrée.\n\n" +
-        "Je recommande de cibler en priorité les niches sous-servies (fintech réglementaire, e-santé) avant de généraliser.";
-    }
-    if (t.indexOf("validation") !== -1 || t.indexOf("concept") !== -1 || t.indexOf("viabilit") !== -1) {
-      return "Pour valider votre concept, voici le protocole recommandé :\n\n" +
-        "1. **Entretiens clients** (10 minimum) pour confirmer le problème.\n" +
-        "2. **Landing page de test** avec pré-inscriptions (objectif : 30% de conversion).\n" +
-        "3. **Preuve de paiement** : faire pré-commander votre solution à 5 clients pilotes.\n\n" +
-        "Votre score de validation actuel est estimé à **68%** — un bon point de départ, mais la preuve client reste à construire.";
-    }
-    if (t.indexOf("plan") !== -1 || t.indexOf("croissance") !== -1 || t.indexOf("trimestre") !== -1 || t.indexOf("etape") !== -1) {
-      return "Voici votre plan de croissance pour le prochain trimestre :\n\n" +
-        "**Phase 1 — Fondations (S1-2)** : finaliser le MVP, définir les KPIs (taux d'activation > 40%).\n" +
-        "**Phase 2 — Traction (S3-6)** : 3 canaux d'acquisition testés avec un budget de 2 000 €, objectif CAC < 25 €.\n" +
-        "**Phase 3 — Scale (S7-12)** : automatiser le funnel, recruter un commercial, viser 120 clients actifs.\n\n" +
-        "Je peux générer ce plan dans votre espace « Plan d'action » si vous le souhaitez.";
-    }
-    if (t.indexOf("pricing") !== -1 || t.indexOf("prix") !== -1 || t.indexOf("tarif") !== -1) {
-      return "Concernant votre stratégie de pricing :\n\n" +
-        "• **Modèle recommandé** : abonnement par paliers (Starter / Pro / Entreprise) avec un freemium limité.\n" +
-        "• **Benchmark secteur** : vos concurrents facturent entre 19 € et 99 €/mois ; un prix de 49 € avec valeur démontrée se justifie.\n" +
-        "• **Levier** : la tarification à l'usage augmente le LTV de +15% sur ce segment.\n\n" +
-        "Souhaitez-vous que je simule l'impact financier de ces options ?";
-    }
-    if (t.indexOf("automatiser") !== -1 || t.indexOf("workflow") !== -1) {
-      return "Pour automatiser vos tâches répétitives :\n\n" +
-        "1. **Audit des processus** : cartographiez les tâches > 2h/semaine.\n" +
-        "2. **Outils recommandés** : Zapier ou n8n pour l'orchestration, et l'API de votre stack pour le reste.\n" +
-        "3. **Gain estimé** : 10 à 15h libérées par semaine dès le premier mois.\n\n" +
-        "Je peux vous générer un workflow type si vous me décrivez votre process actuel.";
-    }
-    if (t.indexOf("fintech") !== -1 || t.indexOf("concurrent") !== -1) {
-      return "Analyse concurrentielle du secteur FinTech :\n\n" +
-        "• **Acteurs majeurs** : 3 licornes dominent le marché, mais leur focus est le grand public.\n" +
-        "• **Opportunité** : le segment B2B (outils pour entrepreneurs) est sous-servi — traction +30% supérieure au B2C.\n" +
-        "• **Différenciation** : positionnez-vous sur la conformité réglementaire automatisée, une douleur forte et mal adressée.";
-    }
-
-    return "Merci pour votre question. En tant qu'assistant stratégique, je vous suggère de préciser votre demande " +
-      "sur l'un de ces axes :\n\n" +
-      "• **Analyse de marché** — tendances et opportunités dans votre secteur\n" +
-      "• **Validation de concept** — viabilité de votre idée\n" +
-      "• **Plan de croissance** — étapes clés pour les prochains mois\n" +
-      "• **Stratégie de pricing** — modèles et benchmarks\n\n" +
-      "Plus votre question est précise, plus ma réponse sera actionnable. 🎯";
-  }
-  /* ============================================================ */
-
-  /* ---------- Données de conversation par défaut ---------- */
-  var SEED_HISTORY = {
-    "analyse-marche-saas": {
-      title: "Analyse de marché SaaS",
-      date: "Aujourd'hui",
-      messages: [
-        { role: "user", text: "Quelles sont les opportunités dans le SaaS pour PME en 2024 ?", time: "09:41" },
-        { role: "ai", text: "Le marché SaaS B2B PME affiche une croissance de +18% par an. Les segments les plus porteurs : gestion financière automatisée, outils RH et automatisation des process. L'opportunité principale se situe sur les niches verticales sous-servies, où la concurrence est plus faible et la valeur perçue plus forte.", time: "09:41" }
-      ]
-    },
-    "plan-action-q3": {
-      title: "Plan d'action Q3",
-      date: "Lundi",
-      messages: [
-        { role: "user", text: "Établir les étapes clés pour le Q3", time: "16:02" },
-        { role: "ai", text: "Voici votre plan Q3 : 1) Finaliser le MVP (semaines 1-4), 2) Lancer la beta avec 50 utilisateurs (semaines 5-8), 3) Mesurer et itérer sur les KPIs d'activation (semaines 9-12). Je peux générer ce plan dans votre espace « Plan d'action ».", time: "16:03" }
-      ]
-    },
-    "validation-fintech": {
-      title: "Validation concept FinTech",
-      date: "15 Mai",
-      messages: [
-        { role: "user", text: "Analyse concurrentielle secteur FinTech", time: "11:20" },
-        { role: "ai", text: "Le secteur FinTech est dominé par 3 acteurs grand public. Votre angle B2B pour entrepreneurs est différenciant : traction 30% supérieure au B2C. Je recommande de valider par 10 entretiens clients ciblés sur les directeurs financiers de PME.", time: "11:21" }
-      ]
-    },
-    "optimisation-workflow": {
-      title: "Optimisation Workflow",
-      date: "12 Mai",
-      messages: [
-        { role: "user", text: "Comment automatiser les tâches répétitives ?", time: "09:05" },
-        { role: "ai", text: "Commencez par auditer les tâches de plus de 2h par semaine. Les outils d'orchestration comme n8n ou Zapier couvrent 80% des cas. Gain estimé : 10-15h libérées par semaine dès le premier mois.", time: "09:06" }
-      ]
-    },
-    "strategie-pricing": {
-      title: "Stratégie de Pricing",
-      date: "8 Mai",
-      messages: [
-        { role: "user", text: "Modèles d'abonnement pour mon SaaS", time: "14:33" },
-        { role: "ai", text: "Le modèle par paliers (Starter/Pro/Entreprise) est le plus efficace sur ce segment. Benchmark : 19 € à 99 €/mois. Un positionnement à 49 € avec valeur démontrée maximise le taux de conversion.", time: "14:34" }
-      ]
-    }
-  };
 
   /* ---------- État ---------- */
   var currentConversation = "new";
@@ -133,14 +28,14 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         var data = JSON.parse(raw);
-        // fusion avec les conversations par défaut
-        Object.keys(SEED_HISTORY).forEach(function (k) {
-          if (!data[k]) data[k] = SEED_HISTORY[k];
+        // L'historique ne contient que les conversations réelles de l'utilisateur
+        Object.keys(data).forEach(function (k) {
+          if (!data[k] || !data[k].messages || data[k].messages.length === 0) delete data[k];
         });
         return data;
       }
     } catch (e) { /* noop */ }
-    return JSON.parse(JSON.stringify(SEED_HISTORY));
+    return {};
   }
 
   function saveConversations() {
@@ -296,36 +191,51 @@
         checkGeminiStatus();
       })
       .catch(function (err) {
-        // Backend injoignable ou erreur → repli sur les réponses simulées
-        var reply;
-        var isError = false;
-        try {
-          reply = getMockReply(text);
-        } catch (e2) {
-          reply = e2.message || "Une erreur est survenue.";
-          isError = true;
+        // Backend injoignable ou erreur → message d'erreur clair (pas de réponse simulée)
+        var msg = "Le service IA est momentanément indisponible. Vérifiez que le serveur est démarré " +
+          "(cd backend && python manage.py runserver) et que la clé Gemini est configurée dans backend/.env.";
+        if (err && err.message && err.message.indexOf("indisponible") === -1) {
+          msg = "⚠️ " + (err.message || msg);
         }
         setTimeout(function () {
           hideTyping();
-          if (isError) {
-            conv.messages.push({ role: "ai", text: "⚠️ " + reply, time: nowTime(), error: true });
-          } else {
-            conv.messages.push({ role: "ai", text: reply, time: nowTime() });
-          }
+          conv.messages.push({ role: "ai", text: msg, time: nowTime(), error: true });
           saveConversations();
           renderMessages(conv.messages);
           setBusy(false);
-        }, 900 + Math.random() * 700);
+          checkGeminiStatus();
+        }, 400);
       });
   }
 
-  /* ---------- Appel backend Gemini (proxy serveur) ---------- */
+  /* ---------- Appel backend Gemini ----------
+     Priorité : API Django (si token JWT présent) — la conversation est
+     persistée côté serveur (conversation_id).
+     Repli : proxy Node server/server.js (sans auth).
+     Dernier recours (catch dans sendMessage) : réponses simulées. */
   function callGemini(text, history) {
+    var conv = conversations[currentConversation];
+
+    // 1. Backend Django : token JWT disponible
+    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
+      return window.IntelliAPI.sendMessage(text, conv ? conv.serverId : null, conv ? conv.title : null)
+        .then(function (data) {
+          if (!data || !data.reply) {
+            throw new Error("Gemini n'a pas renvoyé de réponse.");
+          }
+          // On mémorise l'id serveur de la conversation pour garder le contexte
+          if (conv && data.conversation_id && conv.serverId !== data.conversation_id) {
+            conv.serverId = data.conversation_id;
+            saveConversations();
+          }
+          return data.reply;
+        });
+    }
+
+    // 2. Proxy Node (sans auth) : historique envoyé tel quel
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, 30000) : null;
 
-    // Chemin absolu : les pages vivent dans /pages/, l'URL relative
-    // « api/assistant » se résoudrait en /pages/api/assistant.
     return fetch("/api/assistant", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -369,7 +279,7 @@
         } else {
           el.textContent = "Mode démo";
           el.classList.add("demo");
-          el.title = "Réponses simulées — ajoutez GEMINI_API_KEY dans server/.env";
+          el.title = "Réponses simulées — ajoutez GEMINI_API_KEY dans backend/.env ou server/.env";
         }
       })
       .catch(function () {
@@ -492,6 +402,4 @@
     input.style.height = Math.min(input.scrollHeight, 120) + "px";
   }
 
-  // Préchargement de l'historique affiché côté serveur (seed)
-  // Les conversations par défaut sont fusionnées au chargement.
 })();

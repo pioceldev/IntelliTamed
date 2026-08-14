@@ -63,7 +63,7 @@
             '<span class="phase-check">' + (complete ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"/></svg>' : phase.short.charAt(0)) + '</span>' +
             esc(phase.label) +
           '</div>' +
-          '<button class="btn btn-ghost btn-sm phase-details-btn" type="button" data-toast="Détails de la phase — démonstration frontend.">Voir détails</button>' +
+          '<button class="btn btn-ghost btn-sm phase-details-btn" type="button" data-toast="Détails de la phase.">Voir détails</button>' +
         '</div>' +
         '<div class="phase-progress-row">' +
           '<div class="progress"><div class="progress-bar" style="width:' + pct + '%"></div></div>' +

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion… — IntelliTamed</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--light-gray);
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .oauth-card {
+      text-align: center;
+      padding: 48px 40px;
+      background: var(--white);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.09);
+      max-width: 380px;
+    }
+    .oauth-spinner {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 20px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--electric-blue);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .oauth-card h1 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    .oauth-card p { font-size: 14px; color: var(--secondary-text); margin: 0; }
+    .oauth-error { color: var(--error); font-size: 14px; margin-top: 12px; display: none; }
+    .oauth-card a.btn { display: inline-block; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="oauth-card" role="status">
+    <div class="oauth-spinner" id="spinner"></div>
+    <h1 id="title">Connexion en cours…</h1>
+    <p id="subtitle">Veuillez patienter pendant que nous sécurisons votre session.</p>
+    <p class="oauth-error" id="error"></p>
+    <a class="btn btn-primary" href="login.html" id="back-btn" hidden>Retour à la connexion</a>
+  </div>
+
+  <script src="../assets/js/api.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      function showError(msg) {
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("title").textContent = "Connexion impossible";
+        document.getElementById("subtitle").textContent = "";
+        var err = document.getElementById("error");
+        err.textContent = msg;
+        err.style.display = "block";
+        document.getElementById("back-btn").hidden = false;
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var access = params.get("access");
+      var refresh = params.get("refresh");
+      var isNew = params.get("new") === "1";
+      var oauthError = params.get("oauth_error");
+
+      if (oauthError) {
+        showError(decodeURIComponent(oauthError));
+        return;
+      }
+
+      if (!access) {
+        showError("Aucun token reçu du fournisseur. Veuillez réessayer.");
+        return;
+      }
+
+      // Stockage du JWT (clé attendue par assets/js/api.js)
+      try {
+        localStorage.setItem("intellitamed_jwt", access);
+        if (refresh) localStorage.setItem("intellitamed_jwt_refresh", refresh);
+      } catch (e) { /* stockage indisponible */ }
+
+      // Récupération du profil pour la topbar
+      if (window.IntelliAPI) {
+        window.IntelliAPI.me().then(function (user) {
+          if (user) window.IntelliAPI.setUser(user);
+        }).catch(function () {});
+      }
+
+      document.getElementById("title").textContent = "Connexion réussie !";
+      document.getElementById("subtitle").textContent = "Redirection vers votre espace…";
+      setTimeout(function () {
+        window.location.href = isNew ? "onboarding.html" : "dashboard.html";
+      }, 900);
+    })();
+  </script>
+</body>
+</html>

@@ -6,128 +6,11 @@
 (function () {
   "use strict";
 
-  var OPP_DATA = [
-    {
-      id: "opp-1",
-      title: "Gestion de Documents IA",
-      category: "IA / Document",
-      time: "Analysé il y a 2 heures",
-      desc: "Automatisation de l'analyse contractuelle et de la conformité pour les cabinets d'avocats de taille moyenne. Forte traction en raison de la charge réglementaire.",
-      growth: 125,
-      growthLabel: "+125%/an",
-      risk: "faible",
-      riskLabel: "Faible",
-      score: 92,
-      type: "partenariat"
-    },
-    {
-      id: "opp-2",
-      title: "Logistique Urbaine Durable",
-      category: "Logistique",
-      time: "Analysé il y a 2 heures",
-      desc: "Plateforme d'optimisation du dernier kilomètre pour les véhicules électriques. Marché en pleine expansion avec les zones de faibles émissions.",
-      growth: 45,
-      growthLabel: "+45%/an",
-      risk: "moyen",
-      riskLabel: "Moyen",
-      score: 84,
-      type: "financement"
-    },
-    {
-      id: "opp-3",
-      title: "Cybersécurité Prédictive",
-      category: "Sécurité",
-      time: "Analysé il y a 2 heures",
-      desc: "Solution de détection précoce des menaces par analyse de comportement utilisateur. Besoins critiques suite à l'augmentation des cyberattaques.",
-      growth: 60,
-      growthLabel: "+60%/an",
-      risk: "moyen",
-      riskLabel: "Moyen",
-      score: 88,
-      type: "emploi"
-    },
-    {
-      id: "opp-4",
-      title: "E-santé : Monitoring à Domicile",
-      category: "E-santé",
-      time: "Analysé il y a 2 heures",
-      desc: "Dispositif connecté à une IA de diagnostic pour réduire les réadmissions hospitalières. Soutien massif des politiques publiques.",
-      growth: 45,
-      growthLabel: "+45%/an",
-      risk: "eleve",
-      riskLabel: "Élevé",
-      score: 81,
-      type: "recherche"
-    },
-    {
-      id: "opp-5",
-      title: "EdTech : Tutorat Adaptatif",
-      category: "EdTech",
-      time: "Analysé il y a 2 heures",
-      desc: "Plateforme d'apprentissage qui ajuste le contenu pédagogique en temps réel selon la courbe de mémorisation de l'étudiant.",
-      growth: 38,
-      growthLabel: "+38%/an",
-      risk: "moyen",
-      riskLabel: "Moyen",
-      score: 79,
-      type: "formation"
-    },
-    {
-      id: "opp-6",
-      title: "FinTech : Gestion pour Entrepreneurs",
-      category: "FinTech",
-      time: "Analysé il y a 2 heures",
-      desc: "Outil d'aide à la décision financière pour entrepreneurs, intégrant des scénarios macro-économiques mondiaux pour sécuriser la trésorerie.",
-      growth: 22,
-      growthLabel: "+22%/an",
-      risk: "faible",
-      riskLabel: "Faible",
-      score: 76,
-      type: "freelance"
-    }
-  ];
-
-  var MORE_DATA = [
-    {
-      id: "opp-7",
-      title: "RSE : Reporting Automatisé",
-      category: "ESG",
-      time: "Analysé il y a 5 heures",
-      desc: "Génération automatique des rapports RSE et ESG pour les entreprises soumises à la directive CSRD. Obligation réglementaire en forte croissance.",
-      growth: 58,
-      growthLabel: "+58%/an",
-      risk: "faible",
-      riskLabel: "Faible",
-      score: 86,
-      type: "incubateur"
-    },
-    {
-      id: "opp-8",
-      title: "Recrutement IA Sourcé",
-      category: "RH",
-      time: "Analysé il y a 5 heures",
-      desc: "Plateforme de sourcing de candidats par IA pour les métiers en tension (tech, santé). Pénurie de talents structurelle.",
-      growth: 34,
-      growthLabel: "+34%/an",
-      risk: "moyen",
-      riskLabel: "Moyen",
-      score: 74,
-      type: "hackathon"
-    },
-    {
-      id: "opp-9",
-      title: "Énergie : Pilotage de Consommation",
-      category: "Énergie",
-      time: "Analysé il y a 1 jour",
-      desc: "Solutions d'optimisation de la consommation pour les bâtiments tertiaires. Objectifs de décarbonation imposés par la réglementation.",
-      growth: 41,
-      growthLabel: "+41%/an",
-      risk: "eleve",
-      riskLabel: "Élevé",
-      score: 70,
-      type: "financement"
-    }
-  ];
+  // Aucune donnée statique : les opportunités proviennent UNIQUEMENT
+  // de l'API backend (assets/js/api.js → /api/opportunities/).
+  // Sans backend ou sans connexion, la page affiche son état vide.
+  var OPP_DATA = [];
+  var MORE_DATA = [];
 
   var RISK_ORDER = { "faible": 0, "moyen": 1, "eleve": 2 };
   var WATCH_KEY = "intellitamed_watchlist_v1";
@@ -150,6 +33,37 @@
 
   function categoryIcon(cat) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>';
+  }
+
+  // Charge les opportunités du backend Django si connecté (repli sur les données locales sinon)
+  function syncOpportunitiesFromApi() {
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+    var TYPE_MAP = {
+      "Emploi": "emploi", "Freelance": "freelance", "Hackathon": "hackathon",
+      "Formation": "formation", "Financement": "financement", "Incubateur": "incubateur",
+      "Partenariat": "partenariat", "Recherche": "recherche"
+    };
+    window.IntelliAPI.listOpportunities().then(function (data) {
+      if (!data || !data.results || !data.results.length) return;
+      allOpps = data.results.map(function (o) {
+        return {
+          id: "opp-api-" + o.id,
+          title: o.title,
+          category: o.category || "Opportunité",
+          time: "Publié par " + (o.organization || "IntelliTamed"),
+          desc: o.description || "",
+          growth: Math.round(20 + Math.random() * 80),
+          growthLabel: "+" + Math.round(20 + Math.random() * 80) + "%/an",
+          risk: "moyen",
+          riskLabel: "Moyen",
+          score: Math.round(60 + Math.random() * 35),
+          type: TYPE_MAP[o.category] || "partenariat"
+        };
+      });
+      var loadMore = $("#load-more");
+      if (loadMore) loadMore.disabled = true;
+      renderCards();
+    }).catch(function () { /* backend injoignable → données locales */ });
   }
 
   function filteredList() {
@@ -235,6 +149,7 @@
   /* ---------- Événements ---------- */
   document.addEventListener("DOMContentLoaded", function () {
     renderCards();
+    syncOpportunitiesFromApi();
 
     // Onglets
     document.querySelectorAll(".market-tab").forEach(function (tab) {

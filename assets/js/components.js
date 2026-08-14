@@ -83,8 +83,8 @@
   /* ---------- Sidebar ---------- */
   function sidebarHTML(activeId, opts) {
     opts = opts || {};
-    var user = opts.user || { name: "Jean Dupont", role: "Entrepreneur" };
-    var initials = user.name.split(" ").map(function (p) { return p.charAt(0); }).join("").toUpperCase().slice(0, 2);
+    var user = opts.user || { name: "Mon profil", role: "Entrepreneur" };
+    var initials = user.name ? user.name.split(" ").map(function (p) { return p.charAt(0); }).join("").toUpperCase().slice(0, 2) : "IT";
 
     function item(nav) {
       var isActive = nav.id === activeId;
@@ -125,6 +125,33 @@
     var breadcrumb = cfg.breadcrumb || "Tableau de bord";
     var badge = cfg.badge;
     var actions = cfg.actions || "";
+
+    // Utilisateur connecté (JWT) sinon profil de démo
+    var userName = "Jean Dupont";
+    var initials = "JD";
+    var apiUser = global.IntelliAPI && global.IntelliAPI.getUser ? global.IntelliAPI.getUser() : null;
+    if (apiUser) {
+      var first = apiUser.first_name || "";
+      var last = apiUser.last_name || "";
+      if (first || last) {
+        userName = (first + " " + last).trim();
+        initials = (first.charAt(0) + last.charAt(0)).toUpperCase() || userName.slice(0, 2).toUpperCase();
+      } else {
+        userName = apiUser.email || userName;
+        initials = userName.slice(0, 2).toUpperCase();
+      }
+    } else if (global.IntelliApp) {
+      try {
+        var store = global.IntelliApp.loadStore();
+        if (store && store.profile && store.profile.firstName) {
+          userName = store.profile.firstName + " " + (store.profile.lastName || "");
+          initials = (store.profile.firstName.charAt(0) + (store.profile.lastName || "").charAt(0)).toUpperCase();
+        }
+      } catch (e) { /* store indisponible */ }
+    }
+
+    var logoutHref = global.IntelliAPI && global.IntelliAPI.getToken() ? "#" : "login.html";
+
     return '' +
       '<header class="topbar">' +
         '<div class="topbar-left">' +
@@ -141,12 +168,12 @@
           '<button class="btn-icon" type="button" data-toast="Nouvelle notification : votre analyse EcoCharge est prête." aria-label="Notifications">' + icon("bell") + "</button>" +
           '<div class="user-menu" data-user-menu>' +
             '<button class="user-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false">' +
-              '<span class="avatar">JD</span><span class="user-menu-name">Jean Dupont</span>' + icon("chevronDown", "user-menu-chevron") +
+              '<span class="avatar">' + esc(initials) + '</span><span class="user-menu-name">' + esc(userName) + "</span>" + icon("chevronDown", "user-menu-chevron") +
             "</button>" +
             '<div class="user-menu-dropdown" hidden>' +
               '<a href="profile.html">' + icon("user") + "Mon profil</a>" +
               '<a href="profile.html">' + icon("settings") + "Paramètres</a>" +
-              '<a href="login.html">' + icon("logout") + "Se déconnecter</a>" +
+              '<a href="' + logoutHref + '" data-logout>' + icon("logout") + "Se déconnecter</a>" +
             "</div>" +
           "</div>" +
         "</div>" +

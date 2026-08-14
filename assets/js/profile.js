@@ -33,6 +33,29 @@
     var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
     var p = store.profile || {};
 
+    // Backend Django connecté → on charge le profil réel en priorité
+    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
+      window.IntelliAPI.fetchProfile().then(function (prof) {
+        if (!prof) return;
+        p = {
+          firstName: prof.first_name || "",
+          lastName: prof.last_name || "",
+          email: prof.email || "",
+          role: prof.profile_type || "",
+          bio: prof.bio || "",
+          website: prof.website || "",
+          linkedin: prof.linkedin || ""
+        };
+        store.profile = Object.assign({}, store.profile || {}, p);
+        if (window.IntelliApp) window.IntelliApp.saveStore(store);
+        fillProfileForm(p);
+      }).catch(function () { /* backend injoignable → profil local */ });
+    }
+
+    fillProfileForm(p);
+  }
+
+  function fillProfileForm(p) {
     $("#pf-first").value = p.firstName || "";
     $("#pf-last").value = p.lastName || "";
     $("#pf-email").value = p.email || "";
@@ -54,7 +77,7 @@
 
   function saveProfile() {
     var store = window.IntelliApp ? window.IntelliApp.loadStore() : {};
-    store.profile = {
+    var profileData = {
       firstName: $("#pf-first").value.trim() || "Jean",
       lastName: $("#pf-last").value.trim() || "Dupont",
       email: $("#pf-email").value.trim(),
@@ -64,8 +87,26 @@
       linkedin: $("#pf-linkedin").value.trim(),
       avatar: store.profile ? (store.profile.avatar || null) : null
     };
+    store.profile = profileData;
     if (window.IntelliApp) window.IntelliApp.saveStore(store);
-    if (window.IntelliApp) window.IntelliApp.showToast("Profil mis à jour avec succès.", "success");
+
+    // Backend Django connecté → sauvegarde réelle (repli silencieux sinon)
+    if (window.IntelliAPI && window.IntelliAPI.getToken()) {
+      window.IntelliAPI.saveProfile({
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        bio: profileData.bio,
+        website: profileData.website,
+        linkedin: profileData.linkedin,
+        profile_type: profileData.role
+      }).then(function () {
+        if (window.IntelliApp) window.IntelliApp.showToast("Profil mis à jour avec succès.", "success");
+      }).catch(function () {
+        if (window.IntelliApp) window.IntelliApp.showToast("Profil enregistré localement (backend injoignable).");
+      });
+    } else {
+      if (window.IntelliApp) window.IntelliApp.showToast("Profil mis à jour avec succès.", "success");
+    }
   }
 
   function initProfileForm() {

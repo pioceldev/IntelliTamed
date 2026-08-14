@@ -209,8 +209,29 @@
       saveOnboarding();
       finishBtn.classList.add("is-loading");
       finishBtn.disabled = true;
-      if (window.IntelliApp) window.IntelliApp.showToast("Onboarding terminé. Bienvenue ! 🚀", "success");
-      setTimeout(function () { window.location.href = "dashboard.html"; }, 1100);
+
+      function finish() {
+        if (window.IntelliApp) window.IntelliApp.showToast("Onboarding terminé. Bienvenue ! 🚀", "success");
+        setTimeout(function () { window.location.href = "dashboard.html"; }, 1100);
+      }
+
+      // Backend connecté → enregistrement réel du profil (repli local sinon)
+      if (window.IntelliAPI && window.IntelliAPI.getToken()) {
+        window.IntelliAPI.saveOnboarding({
+          profile_type: state.profile || "",
+          domain: state.domain || "",
+          experience: state.experience || "",
+          goals: state.goals || [],
+          interests: state.goals || [],
+          ai_preferences: {}
+        }).then(function () { finish(); }).catch(function () {
+          finishBtn.classList.remove("is-loading");
+          finishBtn.disabled = false;
+          finish();
+        });
+      } else {
+        finish();
+      }
     });
   }
 
