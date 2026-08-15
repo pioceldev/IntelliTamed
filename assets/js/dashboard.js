@@ -190,7 +190,149 @@
     });
 
     renderChart();
+
+    // ---------- Vraies actions ----------
+    // « Nouvelle Analyse » : lance l'analyse Gemini du projet le plus avancé
+    var newAnalysis = document.getElementById("new-analysis-btn");
+    if (newAnalysis) {
+      newAnalysis.addEventListener("click", function () {
+        if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+        newAnalysis.classList.add("is-loading");
+        newAnalysis.disabled = true;
+        window.IntelliAPI.listProjects().then(function (d) {
+          var projects = (d && d.results) || [];
+          if (!projects.length) {
+            throw new Error("Créez d'abord un projet pour l'analyser.");
+          }
+          // Projet le plus avancé
+          var best = projects.slice().sort(function (a, b) { return (b.progress || 0) - (a.progress || 0); })[0];
+          return window.IntelliAPI.analyzeProject(best.id);
+        }).then(function () {
+          if (window.IntelliApp) window.IntelliApp.showToast("Analyse Gemini générée. Consultez la page Analyse.", "success");
+          setTimeout(function () { window.location.href = "project-analysis.html"; }, 900);
+        }).catch(function (err) {
+          if (window.IntelliApp) window.IntelliApp.showToast((err && err.message) || "Analyse impossible. Réessayez dans un instant.", "error");
+        }).then(function () {
+          newAnalysis.classList.remove("is-loading");
+          newAnalysis.disabled = false;
+        });
+      });
+    }
+
+    // ---------- Analyse d'idée (Gemini) ----------
+    var ideaBtn = document.getElementById("idea-analysis-btn");
+    if (ideaBtn) {
+      ideaBtn.addEventListener("click", function () {
+        var modal = document.getElementById("idea-modal");
+        if (modal && window.IntelliApp) window.IntelliApp.openModal(modal);
+      });
+    }
+
+    var ideaForm = document.getElementById("idea-form");
+    if (ideaForm) {
+      ideaForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var text = document.getElementById("idea-text").value.trim();
+        if (!text) {
+          if (window.IntelliApp) window.IntelliApp.showToast("Décrivez d'abord votre idée.", "error");
+          return;
+        }
+        var submit = document.getElementById("idea-submit");
+        if (submit) { submit.classList.add("is-loading"); submit.disabled = true; submit.textContent = "Analyse en cours…"; }
+        window.IntelliAPI.analyzeIdea(text).then(function (data) {
+          if (!data) throw new Error("Pas de réponse de l'IA.");
+          ideaForm.hidden = true;
+          var result = document.getElementById("idea-result");
+          result.hidden = false;
+          renderIdeaResult(data);
+          if (window.IntelliApp) window.IntelliApp.showToast("Analyse de votre idée générée.", "success");
+        }).catch(function (err) {
+          if (window.IntelliApp) window.IntelliApp.showToast((err && err.message) || "Analyse impossible. Réessayez dans un instant.", "error");
+        }).then(function () {
+          if (submit) { submit.classList.remove("is-loading"); submit.disabled = false; submit.textContent = "Analyser avec Gemini"; }
+        });
+      });
+    }
+
+    // « Créer un projet depuis cette analyse »
+    var toProject = document.getElementById("idea-to-project");
+    if (toProject) {
+      toProject.addEventListener("click", function () {
+        var body = document.getElementById("idea-result-body");
+        var data = body && body.__ideaData;
+        if (!data) return;
+        var name = document.getElementById("idea-text").value.trim().slice(0, 60);
+        window.IntelliAPI.createProject({
+          name: name || "Nouveau projet",
+          description: data.solution || data.problem || "",
+          problem: data.problem || "",
+          solution: data.solution || "",
+          target_audience: data.target_audience || "",
+          business_model: data.business_model || "",
+          status: "idea",
+          progress: 0
+        }).then(function () {
+          if (window.IntelliApp) window.IntelliApp.showToast("Projet créé à partir de votre analyse.", "success");
+          setTimeout(function () { window.location.href = "projects.html"; }, 900);
+        }).catch(function (err) {
+          if (window.IntelliApp) window.IntelliApp.showToast((err && err.message) || "Création impossible.", "error");
+        });
+      });
+    }
+
+    // « Exporter les données » : télécharge un rapport texte réel
+    var exportBtn = document.getElementById("export-data-btn");
+    if (exportBtn) {
+      exportBtn.addEventListener("click", function () {
+        window.IntelliAPI.listProjects().then(function (d) {
+          var projects = (d && d.results) || [];
+          var lines = projects.map(function (p) {
+            return "- " + p.name + " | " + (p.status || "") + " | " + (p.progress || 0) + "%";
+          }).join("\n");
+          var content = "RAPPORT DES PROJETS — INTELLITAMED\n" +
+            "Généré le : " + new Date().toLocaleString("fr-FR") + "\n\n" +
+            (lines || "Aucun projet.") + "\n";
+          var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "rapport-projets-" + new Date().toISOString().slice(0, 10) + ".txt";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+          if (window.IntelliApp) window.IntelliApp.showToast("Rapport exporté.", "success");
+        }).catch(function () {
+          if (window.IntelliApp) window.IntelliApp.showToast("Export impossible.", "error");
+        });
+      });
+    }
   });
+
+  /* ---------- Rendu du résultat d'analyse d'idée ---------- */
+  function renderIdeaResult(data) {
+    var body = document.getElementById("idea-result-body");
+    if (!body) return;
+    body.__ideaData = data;
+    function section(title, content) {
+      return '<div class="idea-section"><h4>' + esc(title) + '</h4>' + content + '</div>';
+    }
+    function list(items) {
+      return '<ul class="idea-list">' + (items || []).map(function (i) {
+        return '<li><span class="msg-bullet">•</span> ' + esc(i) + '</li>';
+      }).join("") + '</ul>';
+    }
+    body.innerHTML =
+      section("Problème", "<p>" + esc(data.problem || "") + "</p>") +
+      section("Solution", "<p>" + esc(data.solution || "") + "</p>") +
+      section("Public cible", "<p>" + esc(data.target_audience || "") + "</p>") +
+      section("Proposition de valeur", "<p>" + esc(data.value_proposition || "") + "</p>") +
+      section("Opportunités", list(data.opportunities)) +
+      section("Risques", list(data.risks)) +
+      section("Concurrence", list(data.competition)) +
+      section("Faisabilité", "<p>" + esc(data.feasibility || "") + "</p>") +
+      section("Modèle économique", "<p>" + esc(data.business_model || "") + "</p>") +
+      section("Recommandations", list(data.recommendations)) +
+      section("Prochaines étapes", list(data.next_steps));
+  }
 
   // Re-rendu des graphiques au redimensionnement
   var resizeTimer;

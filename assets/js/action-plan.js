@@ -176,7 +176,7 @@
             '<span class="phase-check">' + (complete ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><polyline points="20 6 9 17 4 12"/></svg>' : phase.short.charAt(0)) + '</span>' +
             esc(phase.label) +
           '</div>' +
-          '<button class="btn btn-ghost btn-sm phase-details-btn" type="button" data-toast="Détails de la phase.">Voir détails</button>' +
+          '<button class="btn btn-ghost btn-sm phase-details-btn" type="button" data-phase-details="' + phase.id + '">Voir détails</button>' +
         '</div>' +
         '<div class="phase-progress-row">' +
           '<div class="progress"><div class="progress-bar" style="width:' + pct + '%"></div></div>' +
@@ -247,7 +247,7 @@
         }).join("") +
       '</div>' +
       '<div class="task-detail-actions">' +
-        '<button class="btn btn-secondary" type="button" data-toast="Documentation générée pour cette étape.">Documentation IA</button>' +
+        '<a class="btn btn-secondary" href="assistant.html?prompt=' + encodeURIComponent("Aide-moi à réaliser l'étape « " + task.title + " » de mon plan d'action (" + (task.category || "stratégique") + "). Donne-moi un plan d'actions concret.") + '">Documentation IA</a>' +
         '<button class="btn btn-primary" type="button" data-mark-done="' + task.id + '">' + (task.done ? "Marquer comme à faire" : "Marquer comme terminée") + '</button>' +
       '</div>';
   }
@@ -365,6 +365,19 @@
         activeTaskId = taskEl.getAttribute("data-task");
         renderPhases();
         renderTaskDetail();
+        return;
+      }
+
+      // Détails d'une phase : sélectionne la première étape de la phase
+      var phaseDetails = e.target.closest("[data-phase-details]");
+      if (phaseDetails) {
+        var pid = phaseDetails.getAttribute("data-phase-details");
+        var first = (tasks[pid] || [])[0];
+        if (first) {
+          activeTaskId = first.id;
+          renderPhases();
+          renderTaskDetail();
+        }
         return;
       }
 

@@ -48,6 +48,7 @@ class User(AbstractUser):
     role = models.CharField(
         "Rôle", max_length=20, choices=Role.choices, default=Role.ENTREPRENEUR
     )
+    email_verified = models.BooleanField("E-mail vérifié", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     USERNAME_FIELD = "email"
@@ -74,6 +75,7 @@ class Profile(models.Model):
     # Informations publiques
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
+    avatar = models.TextField("Photo de profil (data-URL)", blank=True)
     country = models.CharField("Pays", max_length=100, blank=True)
     bio = models.TextField("Bio", blank=True)
     website = models.URLField(blank=True)

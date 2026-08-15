@@ -118,14 +118,6 @@
       }
     });
 
-    // 7. Navigation "Objectifs" (page non livrée)
-    document.querySelectorAll("[data-nav='objectives']").forEach(function (link) {
-      link.addEventListener("click", function (e) {
-        e.preventDefault();
-        showToast("Objectifs — bientôt disponible dans votre espace.", "info");
-      });
-    });
-
     // 8. Recherche topbar (démo)
     document.querySelectorAll(".topbar-search input").forEach(function (input) {
       input.addEventListener("keydown", function (e) {

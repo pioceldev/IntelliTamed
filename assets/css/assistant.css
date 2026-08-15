@@ -561,3 +561,104 @@
 .history-item {
   padding-right: 30px;
 }
+
+/* ---------- Menu options de conversation ---------- */
+.chat-options {
+  position: relative;
+}
+.chat-options-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 210px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(11, 16, 32, 0.10);
+  padding: 6px;
+  z-index: 30;
+}
+.chat-options-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text, #111827);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.chat-options-menu button svg {
+  width: 14px;
+  height: 14px;
+  color: #64748B;
+  flex-shrink: 0;
+}
+.chat-options-menu button:hover {
+  background: #F1F5F9;
+}
+.chat-options-menu button#opt-delete-chat {
+  color: #DC2626;
+}
+.chat-options-menu button#opt-delete-chat svg {
+  color: #DC2626;
+}
+.chat-options-menu button#opt-delete-chat:hover {
+  background: #FEF2F2;
+}
+
+/* Menu options de conversation */
+.chat-options {
+  position: relative;
+}
+.chat-options-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(11, 16, 32, 0.12);
+  padding: 6px;
+  z-index: 30;
+}
+.chat-options-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dark-text, #111827);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.chat-options-menu button svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-secondary, #64748B);
+}
+.chat-options-menu button:hover {
+  background: #F1F5F9;
+}
+.chat-options-menu button#opt-delete-chat {
+  color: var(--error, #DC2626);
+}
+.chat-options-menu button#opt-delete-chat svg {
+  color: var(--error, #DC2626);
+}
+.chat-options-menu button#opt-delete-chat:hover {
+  background: #FEF2F2;
+}

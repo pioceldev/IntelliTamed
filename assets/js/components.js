@@ -60,7 +60,7 @@
     { id: "action-plan", label: "Plan d'action", icon: "actionPlan", href: "action-plan.html" },
     { id: "analysis", label: "Analyse", icon: "analysis", href: "project-analysis.html" },
     { id: "opportunities", label: "Opportunités", icon: "opportunities", href: "opportunities.html" },
-    { id: "objectives", label: "Objectifs", icon: "objectives", href: "#" }
+    { id: "objectives", label: "Objectifs", icon: "objectives", href: "objectives.html" }
   ];
 
   var NAV_BOTTOM = [
@@ -88,10 +88,15 @@
 
     function item(nav) {
       var isActive = nav.id === activeId;
-      var href = nav.id === "objectives" ? "#" : nav.href;
-      return '<a class="sidebar-link' + (isActive ? " active" : "") + '" href="' + href + '" data-nav="' + nav.id + '">' +
+      return '<a class="sidebar-link' + (isActive ? " active" : "") + '" href="' + nav.href + '" data-nav="' + nav.id + '">' +
         icon(nav.icon, "sidebar-icon") + '<span>' + esc(nav.label) + "</span></a>";
     }
+
+    // Administration : visible uniquement pour les comptes staff/admin
+    var isAdmin = opts.isAdmin === true || user.is_staff === true || user.role === "admin";
+    var bottomItems = NAV_BOTTOM.filter(function (nav) {
+      return nav.id !== "admin" || isAdmin;
+    });
 
     return '' +
       '<aside class="sidebar" id="sidebar" aria-label="Navigation principale">' +
@@ -106,7 +111,7 @@
           NAV.map(item).join("") +
         '</nav>' +
         '<div class="sidebar-footer">' +
-          NAV_BOTTOM.map(item).join("") +
+          bottomItems.map(item).join("") +
           '<div class="sidebar-user">' +
             '<span class="avatar avatar-sm">' + initials + "</span>" +
             '<div class="sidebar-user-info"><strong>' + esc(user.name) + '</strong><span>' + esc(user.role) + "</span></div>" +
@@ -195,13 +200,33 @@
   }
 
   /* ---------- Injection ---------- */
+  function currentUser() {
+    var stored = global.IntelliAPI && global.IntelliAPI.getUser ? global.IntelliAPI.getUser() : null;
+    return stored || null;
+  }
+
   function injectAll() {
     document.querySelectorAll("[data-inject]").forEach(function (el) {
       var type = el.getAttribute("data-inject");
       if (type === "sidebar") {
-        el.outerHTML = sidebarHTML(el.getAttribute("data-active"), {
-          user: JSON.parse(el.getAttribute("data-user") || "null") || undefined
-        });
+        var user = JSON.parse(el.getAttribute("data-user") || "null") || currentUser();
+        var activeId = el.getAttribute("data-active");
+        el.outerHTML = sidebarHTML(activeId, { user: user });
+        // Rafraîchit le user depuis l'API (is_staff à jour) puis corrige le lien admin
+        if (global.IntelliAPI && global.IntelliAPI.getToken()) {
+          global.IntelliAPI.me().then(function (me) {
+            if (!me) return;
+            if (global.IntelliAPI.setUser) global.IntelliAPI.setUser(me);
+            var link = document.querySelector('.sidebar-footer a[data-nav="admin"]');
+            var isAdmin = me.is_staff === true || me.role === "admin";
+            if (link) link.style.display = isAdmin ? "" : "none";
+            // Met aussi à jour le nom affiché
+            var nameEl = document.querySelector(".sidebar-user-info strong");
+            if (nameEl && (me.first_name || me.last_name)) {
+              nameEl.textContent = (me.first_name + " " + me.last_name).trim();
+            }
+          }).catch(function () { /* backend injoignable : garde la valeur locale */ });
+        }
       } else if (type === "topbar") {
         var cfg = {
           breadcrumb: el.getAttribute("data-breadcrumb"),

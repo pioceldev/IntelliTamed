@@ -58,7 +58,7 @@
                     <button class="btn btn-secondary btn-sm" type="button" id="avatar-upload-btn">Changer la photo</button>
                     <button class="btn btn-ghost btn-sm" type="button" id="avatar-remove-btn">Supprimer</button>
                     <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/gif" hidden>
-                    <p class="avatar-hint">JPG, GIF ou PNG. Max 2 Mo.</p>
+                    <p class="avatar-hint" id="avatar-status">JPG, GIF ou PNG. Max 2 Mo.</p>
                   </div>
                 </div>
 
@@ -82,6 +82,30 @@
                       <label class="form-label" for="pf-role">Rôle / Profession</label>
                       <input class="form-input" type="text" id="pf-role">
                     </div>
+                    <div class="form-group">
+                      <label class="form-label" for="pf-country">Pays</label>
+                      <input class="form-input" type="text" id="pf-country" placeholder="France">
+                    </div>
+                  </div>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label class="form-label" for="pf-domain">Domaine d'activité</label>
+                      <input class="form-input" type="text" id="pf-domain" placeholder="Ex. : Tech, E-commerce, Santé…">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="pf-experience">Expérience</label>
+                      <select class="form-select" id="pf-experience">
+                        <option value="">Sélectionnez…</option>
+                        <option value="debutant">Débutant</option>
+                        <option value="intermediaire">Intermédiaire</option>
+                        <option value="expert">Expert</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pf-skills">Compétences</label>
+                    <input class="form-input" type="text" id="pf-skills" placeholder="Ex. : Marketing, Python, Design — séparés par des virgules">
+                    <p class="form-hint">Séparez vos compétences par des virgules. Elles alimentent les recommandations IA.</p>
                   </div>
                   <div class="form-group">
                     <label class="form-label" for="pf-bio">Bio</label>
@@ -117,8 +141,8 @@
               </span>
               <h3>Besoin d'aide avec votre compte ?</h3>
               <p>Notre équipe de support et nos assistants IA sont disponibles pour répondre à toutes vos questions techniques ou administratives.</p>
-              <a class="btn btn-secondary btn-sm btn-block" href="#" data-toast="Centre d'aide — démonstration frontend.">Centre d'aide</a>
-              <a class="btn btn-primary btn-sm btn-block" href="#" data-toast="Support contacté — un assistant va vous répondre.">Contacter le support</a>
+              <a class="btn btn-secondary btn-sm btn-block" href="assistant.html?prompt=Comment%20puis-je%20obtenir%20de%20l%27aide%20sur%20IntelliTamed%20%3F">Centre d'aide</a>
+              <a class="btn btn-primary btn-sm btn-block" href="assistant.html?prompt=Je%20contacte%20le%20support%20IntelliTamed%20pour%20un%20probl%C3%A8me%20avec%20mon%20compte.">Contacter le support</a>
             </section>
           </aside>
         </div>
@@ -189,31 +213,45 @@
             <section class="card">
               <div class="card-header">
                 <div>
+                  <h2 class="card-title">Zone de danger</h2>
+                  <p class="card-subtitle">Actions irréversibles sur votre compte.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="toggle-row">
+                  <div>
+                    <strong>Supprimer définitivement mon compte</strong>
+                    <p>Supprime votre compte, vos projets, conversations et toutes vos données. Action irréversible.</p>
+                  </div>
+                  <button class="btn btn-danger btn-sm" type="button" id="delete-account-btn">Supprimer le compte</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <h2 class="card-title">Vérification de l'e-mail</h2>
+                  <p class="card-subtitle">Sécurisez votre compte en confirmant votre adresse e-mail.</p>
+                </div>
+                <span class="chip chip-blue" id="email-verify-chip">Chargement…</span>
+              </div>
+              <div class="card-body">
+                <p id="email-verify-text" style="margin:0 0 12px;color:var(--text-secondary,#64748b);font-size:14px;">Vérification de votre adresse…</p>
+                <button class="btn btn-secondary btn-sm" type="button" id="email-verify-btn" hidden>Vérifier mon adresse e-mail</button>
+                <input class="form-input" type="text" id="email-verify-token" placeholder="Collez le token de vérification (affiché en console en mode démo)" hidden style="margin-top:10px;">
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card-header">
+                <div>
                   <h2 class="card-title">Sessions actives</h2>
                   <p class="card-subtitle">Appareils actuellement connectés à votre compte.</p>
                 </div>
               </div>
-              <div class="card-body sessions-list">
-                <div class="session-item">
-                  <span class="session-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                  </span>
-                  <div class="session-info">
-                    <strong>Chrome — Windows</strong>
-                    <span>Paris, France · Session actuelle</span>
-                  </div>
-                  <span class="chip chip-green">Actif</span>
-                </div>
-                <div class="session-item">
-                  <span class="session-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                  </span>
-                  <div class="session-info">
-                    <strong>iPhone 15 — Safari</strong>
-                    <span>Lyon, France · Il y a 2 jours</span>
-                  </div>
-                  <button class="btn btn-ghost btn-sm" type="button" data-toast="Session révoquée.">Révoquer</button>
-                </div>
+              <div class="card-body sessions-list" id="sessions-list">
+                <!-- Session(s) réelle(s) injectées depuis le token JWT -->
               </div>
             </section>
           </div>
@@ -350,7 +388,7 @@
                     <span class="switch-slider"></span>
                   </label>
                 </div>
-                <button class="btn btn-primary" type="button" data-toast="Préférences enregistrées.", style="margin-top:8px;" data-save-preferences>Enregistrer les préférences</button>
+                <button class="btn btn-primary" type="button" style="margin-top:8px;" data-save-preferences>Enregistrer les préférences</button>
               </div>
             </section>
 
@@ -372,7 +410,7 @@
                     <span class="switch-slider"></span>
                   </label>
                 </div>
-                <button class="btn btn-danger btn-sm" type="button" data-toast="Export de vos données lancé — un e-mail vous sera envoyé.">
+                <button class="btn btn-danger btn-sm" type="button" id="export-data">
                   Exporter mes données
                 </button>
               </div>
@@ -391,26 +429,26 @@
                   <h2 class="card-title">Plan actuel</h2>
                   <p class="card-subtitle">Votre abonnement IntelliTamed.</p>
                 </div>
-                <span class="chip chip-blue">Essai gratuit</span>
+                <span class="chip chip-blue" id="sub-status-chip">Chargement…</span>
               </div>
               <div class="card-body">
                 <div class="current-plan">
                   <div>
-                    <h3>Plan Pro</h3>
-                    <p>Projets illimités · Assistant IA illimité · Analyses prédictives</p>
+                    <h3 id="sub-plan-name">Chargement…</h3>
+                    <p id="sub-plan-desc"></p>
                   </div>
                   <div class="current-plan-price">
-                    <strong>49 €</strong>
+                    <strong id="sub-plan-price">—</strong>
                     <span>/ mois</span>
                   </div>
                 </div>
-                <div class="plan-timeline">
-                  <div class="progress"><div class="progress-bar" style="width:60%"></div></div>
-                  <span>9 jours restants sur l'essai de 14 jours</span>
+                <div class="plan-timeline" id="sub-timeline">
+                  <div class="progress"><div class="progress-bar" id="sub-progress-bar" style="width:0%"></div></div>
+                  <span id="sub-timeline-text"></span>
                 </div>
                 <div class="form-actions">
-                  <button class="btn btn-secondary" type="button" data-toast="Passage au plan Entreprise — démonstration frontend.">Passer au plan Entreprise</button>
-                  <button class="btn btn-primary" type="button" data-toast="Abonnement Pro confirmé — démonstration frontend.">Rester sur Pro</button>
+                  <button class="btn btn-secondary" type="button" id="sub-enterprise">Passer au plan Entreprise</button>
+                  <button class="btn btn-primary" type="button" id="sub-pro">Passer au plan Pro</button>
                 </div>
               </div>
             </section>
@@ -431,7 +469,7 @@
                     <strong>Visa ···· 4242</strong>
                     <span>Expire en 08/2027</span>
                   </div>
-                  <button class="btn btn-ghost btn-sm" type="button" data-toast="Édition du mode de paiement — démonstration frontend.">Modifier</button>
+                  <button class="btn btn-ghost btn-sm" type="button" id="edit-payment" data-toast="Ajout d'un mode de paiement — bientôt disponible.">Modifier</button>
                 </div>
               </div>
             </section>
@@ -449,8 +487,8 @@
                     <tr><th>Date</th><th>Description</th><th>Montant</th><th>Statut</th><th></th></tr>
                   </thead>
                   <tbody>
-                    <tr><td>01 juil. 2024</td><td>Facture essai Pro</td><td>0,00 €</td><td><span class="badge-status badge-done">Payé</span></td><td><button class="btn btn-ghost btn-sm" type="button" data-toast="Téléchargement de la facture.">Télécharger</button></td></tr>
-                    <tr><td>01 juin 2024</td><td>Facture essai Pro</td><td>0,00 €</td><td><span class="badge-status badge-done">Payé</span></td><td><button class="btn btn-ghost btn-sm" type="button" data-toast="Téléchargement de la facture.">Télécharger</button></td></tr>
+                    <tr><td>01 juil. 2024</td><td>Facture essai Pro</td><td>0,00 €</td><td><span class="badge-status badge-done">Payé</span></td><td><button class="btn btn-ghost btn-sm" type="button" data-invoice="juil-2024">Télécharger</button></td></tr>
+                    <tr><td>01 juin 2024</td><td>Facture essai Pro</td><td>0,00 €</td><td><span class="badge-status badge-done">Payé</span></td><td><button class="btn btn-ghost btn-sm" type="button" data-invoice="juin-2024">Télécharger</button></td></tr>
                   </tbody>
                 </table>
               </div>

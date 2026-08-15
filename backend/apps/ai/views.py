@@ -1,6 +1,9 @@
 """Vues de l'assistant IA : conversation + appel Gemini persisté."""
 import logging
 
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -109,3 +112,19 @@ class ConversationViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=["get"], url_path="search")
+    def search(self, request):
+        """GET /api/conversations/search?q=terme — recherche dans le titre et le contenu des messages."""
+        query = request.query_params.get("q", "").strip()
+        if not query:
+            return Response({"results": []})
+        qs = Conversation.objects.filter(user=request.user).prefetch_related("messages")
+        # Recherche dans le titre
+        results = qs.filter(title__icontains=query)
+        # Ajouter les conversations qui ont des messages contenant le terme
+        if not results.exists():
+            results = qs.filter(messages__content__icontains=query).distinct()
+        # Désactiver le paginateur pour cette action
+        serializer = ConversationSerializer(results, many=True)
+        return Response({"results": serializer.data})

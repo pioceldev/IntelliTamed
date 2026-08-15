@@ -162,18 +162,31 @@
         if (!data || !data.reply) {
           throw new Error("Gemini n'a pas renvoyé de réponse.");
         }
-        // Mémorise l'id serveur pour garder le contexte de conversation
-        if (data.conversation_id && conv.serverId !== data.conversation_id) {
+        // La conversation locale « new » devient une conversation serveur :
+        // on supprime la clé locale pour éviter le doublon dans l'historique.
+        if (data.conversation_id) {
+          var srvKey = "srv-" + data.conversation_id;
+          var localKey = currentConversation;
+          if (localKey !== srvKey && conversations[localKey] === conv) {
+            delete conversations[localKey];
+          }
           conv.serverId = data.conversation_id;
+          currentConversation = srvKey;
         }
         conv.messages.push({ role: "ai", text: data.reply, time: nowTime() });
         renderMessages(conv.messages);
         setBusy(false);
         if (chatTitle && conv.title) chatTitle.textContent = conv.title;
-        // Recharge l'historique pour afficher la conversation serveur créée
+        // Recharge l'historique serveur pour rester synchronisé (titre, dates, messages)
         loadServerConversations().then(function () {
           if (data.conversation_id) {
-            currentConversation = "srv-" + data.conversation_id;
+            // La version serveur fait foi : on reprend la conversation fraîchement chargée
+            var fresh = conversations["srv-" + data.conversation_id];
+            if (fresh) {
+              currentConversation = "srv-" + data.conversation_id;
+              renderMessages(fresh.messages || []);
+              if (chatTitle) chatTitle.textContent = fresh.title || conv.title || "Conversation";
+            }
             updateHistory();
           }
         });
@@ -230,10 +243,12 @@
         return window.IntelliAPI.getConversation(conv.id).then(function (detail) {
           if (!detail || !detail.messages || !detail.messages.length) return;
           var key = "srv-" + conv.id;
+          var sortDate = (conv.updated_at || conv.created_at || "").replace("T", " ").slice(0, 16);
           conversations[key] = {
             serverId: conv.id,
             title: conv.title || "Conversation",
             date: (conv.updated_at || conv.created_at || "").slice(0, 10),
+            sortDate: sortDate,
             messages: detail.messages.map(function (m) {
               return {
                 role: m.role === "model" ? "ai" : "user",
@@ -251,11 +266,24 @@
     }).catch(function () { /* backend injoignable */ });
   }
 
-  /* ---------- Historique (rendu) ---------- */
+  /* ---------- Historique (rendu, trié du plus récent au plus ancien) ---------- */
+  function sortConversations() {
+    return Object.keys(conversations).filter(function (id) {
+      var c = conversations[id];
+      return c && c.messages && c.messages.length > 0;
+    }).sort(function (a, b) {
+      var ca = conversations[a];
+      var cb = conversations[b];
+      var ta = ca.sortDate || ca.date || "";
+      var tb = cb.sortDate || cb.date || "";
+      return tb.localeCompare(ta);
+    });
+  }
+
   function updateHistory() {
     if (!historyList) return;
     historyList.innerHTML = "";
-    Object.keys(conversations).forEach(function (id) {
+    sortConversations().forEach(function (id) {
       var conv = conversations[id];
       if (!conv || !conv.messages || conv.messages.length === 0) return;
       var li = document.createElement("li");
@@ -314,6 +342,35 @@
     } else {
       remove();
     }
+  }
+
+  /* ---------- Menu options de conversation ---------- */
+  function initChatOptions() {
+    var btn = document.getElementById("chat-options-btn");
+    var menu = document.getElementById("chat-options-menu");
+    if (!btn || !menu) return;
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+    });
+    document.addEventListener("click", function () { menu.hidden = true; });
+
+    var optNew = document.getElementById("opt-new-chat");
+    if (optNew) optNew.addEventListener("click", function () { newConversation(); });
+
+    var optDel = document.getElementById("opt-delete-chat");
+    if (optDel) optDel.addEventListener("click", function () {
+      var id = currentConversation;
+      var conv = conversations[id];
+      if (conv && conv.messages && conv.messages.length > 0) {
+        if (confirm("Supprimer cette conversation ?")) deleteConversation(id);
+      } else {
+        if (window.IntelliApp) window.IntelliApp.showToast("Cette conversation est vide.", "info");
+      }
+    });
   }
 
   /* ---------- Nouvelle discussion ---------- */
@@ -381,6 +438,15 @@
     updateHistory();
     checkGeminiStatus();
     loadServerConversations();
+    initChatOptions();
+
+    // Prompt pré-rempli depuis une autre page (ex: opportunités → assistant)
+    var urlPrompt = new URLSearchParams(window.location.search).get("prompt");
+    if (urlPrompt && input) {
+      input.value = urlPrompt;
+      autoResize();
+      setTimeout(function () { form.dispatchEvent(new Event("submit", { cancelable: true })); }, 400);
+    }
   });
 
   function autoResize() {

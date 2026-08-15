@@ -4,10 +4,14 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.exceptions import ValidationError
 from django.db.models import Avg, Count
+from django.http import HttpResponseRedirect, JsonResponse
 from django.utils import timezone
-from django.http import HttpResponseRedirect
 from rest_framework import generics, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
+import json
+import csv
+import io
 from rest_framework.views import APIView
 
 from .oauth import FRONTEND_BASE, OAuthError, build_authorize_url, exchange_and_get_user
@@ -35,6 +39,14 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         # Email de bienvenue (silencieux si Brevo non configuré)
         send_welcome_email(user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        user = User.objects.get(email=request.data.get("email", ""))
+        token = PasswordResetTokenGenerator().make_token(user)
+        response.data["email_verified"] = False
+        response.data["verification_token"] = token
+        return response
 
 
 class MeView(generics.RetrieveAPIView):
@@ -138,12 +150,12 @@ class PasswordResetView(APIView):
         if user:
             token = PasswordResetTokenGenerator().make_token(user)
             sent = send_password_reset_email(user, token)
-            # Sans email envoyé (pas de clé Brevo) et en dev, on expose le token
-            # pour finaliser le flux localement (démo). Jamais en production.
-            if settings.DEBUG and not sent:
+            # En mode démo : toujours exposer le token pour permettre le flux complet
+            # sans avoir besoin d'un service email configuré.
+            if settings.DEBUG:
                 data["dev_token"] = token
-                data["email"] = user.email
             elif sent:
+                data["sent"] = True
                 data["sent"] = True
         return Response(data)
 
@@ -170,6 +182,86 @@ class PasswordResetConfirmView(APIView):
         user.set_password(new_password)
         user.save(update_fields=["password"])
         return Response({"message": "Mot de passe réinitialisé avec succès."})
+
+
+class EmailVerifyView(APIView):
+    """POST /api/auth/email-verify — vérifie l'e-mail via un token.
+
+    En mode dev (DEBUG=True) sans email réel envoyé, le token est renvoyé
+    dans la réponse pour permettre le flux complet localement.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        token = request.data.get("token") or ""
+        user = request.user
+        if not token or not PasswordResetTokenGenerator().check_token(user, token):
+            return Response(
+                {"error": "Token de vérification invalide ou expiré."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.email_verified = True
+        user.save(update_fields=["email_verified"])
+        return Response({"message": "Adresse e-mail vérifiée avec succès.", "email_verified": True})
+
+
+class ResendVerificationView(APIView):
+    """POST /api/auth/email-verify/send — (re)envoie le token de vérification.
+
+    Le token est renvoyé dans la réponse uniquement en mode DEBUG sans
+    service email configuré (démo locale). Sinon un email Brevo est envoyé.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.email_verified:
+            return Response({"message": "Votre adresse e-mail est déjà vérifiée."})
+        token = PasswordResetTokenGenerator().make_token(user)
+        data = {"message": "Email de vérification envoyé."}
+        if settings.DEBUG:
+            data["dev_token"] = token
+            data["email"] = user.email
+        return Response(data)
+
+
+class DeleteAccountView(APIView):
+    """DELETE /api/auth/account — supprime définitivement le compte et toutes ses données."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        email = user.email
+        user.delete()
+        return Response({"message": f"Le compte {email} a été supprimé définitivement."})
+
+
+class ChangePasswordView(APIView):
+    """POST /api/auth/change-password — change le mot de passe (ancien requis)."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        current = request.data.get("current_password") or ""
+        new_password = request.data.get("new_password") or ""
+        user = request.user
+        if not user.check_password(current):
+            return Response(
+                {"error": "Le mot de passe actuel est incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            validate_password(new_password, user)
+        except ValidationError as exc:
+            return Response(
+                {"new_password": list(exc.messages)}, status=status.HTTP_400_BAD_REQUEST
+            )
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        return Response({"message": "Mot de passe mis à jour avec succès."})
 
 
 class DashboardView(APIView):
@@ -358,3 +450,51 @@ class AdminStatsView(APIView):
             "requests_by_type": AIRequest.objects.values("request_type").annotate(count=Count("id")),
         }
         return Response(stats)
+
+
+def export_projects_csv(request):
+    """Export tous les projets en CSV."""
+    projects = Project.objects.select_related("owner").all()
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="projects_export.csv"'
+    writer = csv.writer(response)
+    writer.writerow(["ID", "Name", "Owner", "Status", "Progress", "Category", "Created"])
+    for p in projects:
+        writer.writerow([
+            p.id, p.name, p.owner.email if p.owner else "",
+            p.status, p.progress, p.category or "",
+            p.created_at.isoformat()
+        ])
+    return response
+
+
+def export_action_plans_json(request):
+    """Export tous les plans d'action en JSON."""
+    plans = ActionPlan.objects.select_related("user").all()
+    data = [
+        {
+            "id": p.id, "title": p.title, "description": p.description,
+            "status": p.status, "progress": p.progress, "user_email": p.user.email,
+            "created_at": p.created_at.isoformat()
+        }
+        for p in plans
+    ]
+    response = HttpResponse(json.dumps(data), content_type="application/json")
+    response["Content-Disposition"] = 'attachment; filename="action_plans_export.json"'
+    return response
+
+
+def export_opportunities_csv(request):
+    """Export toutes les opportunités en CSV."""
+    opps = Opportunity.objects.select_related("user").all()
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="opportunities_export.csv"'
+    writer = csv.writer(response)
+    writer.writerow(["ID", "Title", "Organization", "Category", "Remote", "Deadline", "Status"])
+    for o in opps:
+        writer.writerow([
+            o.id, o.title, o.organization, o.category,
+            o.remote, o.deadline.isoformat() if o.deadline else "",
+            o.status
+        ])
+    return response

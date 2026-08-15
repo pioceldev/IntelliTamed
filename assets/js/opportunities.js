@@ -54,6 +54,7 @@
           risk: "moyen",
           riskLabel: "Moyen",
           score: o.score !== undefined ? o.score : 60,
+          reasons: o.reasons || [],
           type: TYPE_MAP[cat] || "partenariat"
         };
       });
@@ -162,9 +163,14 @@
         '<div class="opp-risk"><strong class="' + riskClass + '">' + esc(o.riskLabel) + '</strong><span>Risque</span></div>' +
         '<div class="opp-score"><strong>' + o.score + '%</strong><span>Compatibilité</span></div>' +
       '</div>' +
+      (o.reasons && o.reasons.length
+        ? '<div class="opp-reasons"><strong>Pourquoi cette opportunité vous correspond :</strong>' +
+          o.reasons.map(function (r) { return '<span class="opp-reason">• ' + esc(r) + '</span>'; }).join("") +
+          '</div>'
+        : '') +
       '<div class="opp-actions">' +
-        '<button class="btn btn-secondary btn-sm" type="button" data-toast="Opportunité ajoutée à votre analyse.">Exploration complète</button>' +
-        '<button class="btn btn-primary btn-sm" type="button" data-toast="Mise en relation lancée — l’assistant vous accompagne.">Saisir</button>' +
+        '<button class="btn btn-secondary btn-sm" type="button" data-explore="' + o.id + '">Exploration complète</button>' +
+        '<button class="btn btn-primary btn-sm" type="button" data-apply="' + o.id + '">Saisir</button>' +
       '</div>' +
     '</article>';
   }
@@ -212,6 +218,53 @@
     // Recherche & tri
     $("#market-search").addEventListener("input", renderCards);
     $("#market-sort").addEventListener("change", renderCards);
+
+    // Mettre à jour les données : recharge depuis l'API
+    var refreshBtn = $("#refresh-opps");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", function () {
+        refreshBtn.classList.add("is-loading");
+        refreshBtn.disabled = true;
+        syncOpportunitiesFromApi();
+        setTimeout(function () {
+          refreshBtn.classList.remove("is-loading");
+          refreshBtn.disabled = false;
+          if (window.IntelliApp) window.IntelliApp.showToast("Opportunités actualisées.", "success");
+        }, 800);
+      });
+    }
+
+    // Actions réelles : exploration complète / saisir
+    document.addEventListener("click", function (e) {
+      var explore = e.target.closest("[data-explore]");
+      if (explore) {
+        var oppId = explore.getAttribute("data-explore");
+        var opp = allOpps.find(function (o) { return o.id === oppId; });
+        if (!opp) return;
+        // Sauvegarde dans la watchlist puis ouvre l'assistant pour une analyse détaillée
+        var realId = oppId.slice("opp-api-".length);
+        var saveP = (window.IntelliAPI && window.IntelliAPI.getToken())
+          ? window.IntelliAPI.saveOpportunity(realId).then(function () {
+              if (window.IntelliApp) window.IntelliApp.showToast("Opportunité « " + opp.title + " » ajoutée à votre watchlist.", "success");
+            }).catch(function () { return null; })
+          : Promise.resolve();
+        saveP.then(function () {
+          // Ouvre l'assistant avec un prompt dédié à cette opportunité
+          var prompt = encodeURIComponent("Analyse en détail l'opportunité suivante pour mon profil : " + opp.title + " — " + opp.desc);
+          window.location.href = "assistant.html?prompt=" + prompt;
+        });
+        return;
+      }
+      var apply = e.target.closest("[data-apply]");
+      if (apply) {
+        var aId = apply.getAttribute("data-apply");
+        var aOpp = allOpps.find(function (o) { return o.id === aId; });
+        if (!aOpp) return;
+        var prompt2 = encodeURIComponent("Je veux saisir cette opportunité : " + aOpp.title + " — aide-moi à préparer ma candidature (organisation, mes atouts, plan d'attaque).");
+        window.location.href = "assistant.html?prompt=" + prompt2;
+        return;
+      }
+    });
 
     // Watchlist (délégation) — synchronisée avec l'API (jamais localStorage)
     document.addEventListener("click", function (e) {

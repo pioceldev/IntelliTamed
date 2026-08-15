@@ -43,6 +43,7 @@ urlpatterns = [
     path("api/", include("apps.action_plans.urls")),
     path("api/", include("apps.opportunities.urls")),
     path("api/", include("apps.notifications.urls")),
+    path("api/", include("apps.subscriptions.urls")),
     # Frontend statique (à garder en dernier)
     re_path(r"^(?P<path>.*)$", frontend_files),
 ]

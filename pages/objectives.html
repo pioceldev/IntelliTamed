@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Objectifs — IntelliTamed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/ui.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/objectives.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <div data-inject="sidebar" data-active="objectives"></div>
+
+    <div class="app-main">
+      <header data-inject="topbar" data-breadcrumb="Tableau de bord > Objectifs"></header>
+
+      <!-- En-tête -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Mes Objectifs</h1>
+          <p class="page-description">
+            Définissez, suivez et validez vos objectifs entrepreneuriaux. L'IA vous aide à rester aligné
+            sur vos priorités stratégiques.
+          </p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" id="add-objective">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+            Ajouter un objectif
+          </button>
+        </div>
+      </div>
+
+      <!-- Progression globale -->
+      <div class="obj-progress-card">
+        <div class="obj-ring" id="obj-ring">
+          <div data-chart='{"type":"ring","percent":0,"size":96,"thickness":10}'></div>
+        </div>
+        <div>
+          <strong id="obj-progress-text">0% des objectifs atteints</strong>
+          <span id="obj-progress-detail">0/0 objectif validé — ajoutez vos premiers objectifs pour commencer.</span>
+        </div>
+      </div>
+
+      <!-- Suggestions IA -->
+      <section class="card obj-suggestions-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Suggestions d'objectifs</h2>
+            <p class="card-subtitle">Cliquez pour les ajouter à votre liste</p>
+          </div>
+          <span class="chip chip-violet">IA</span>
+        </div>
+        <div class="card-body obj-suggestions" id="obj-suggestions">
+          <button class="suggestion-chip" type="button" data-goal="Valider mon concept avec 10 entretiens clients">Valider mon concept avec 10 entretiens clients</button>
+          <button class="suggestion-chip" type="button" data-goal="Trouver un financement de 50 000 €">Trouver un financement de 50 000 €</button>
+          <button class="suggestion-chip" type="button" data-goal="Lancer mon MVP d'ici 90 jours">Lancer mon MVP d'ici 90 jours</button>
+          <button class="suggestion-chip" type="button" data-goal="Construire mon réseau (5 partenariats)">Construire mon réseau (5 partenariats)</button>
+          <button class="suggestion-chip" type="button" data-goal="Monter en compétences (1 formation certifiante)">Monter en compétences (1 formation certifiante)</button>
+          <button class="suggestion-chip" type="button" data-goal="Atteindre 10 000 € de chiffre d'affaires mensuel">Atteindre 10 000 € de chiffre d'affaires mensuel</button>
+        </div>
+      </section>
+
+      <!-- Liste des objectifs -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Ma liste d'objectifs</h2>
+            <p class="card-subtitle" id="obj-count-sub">0 objectif</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="obj-list" id="obj-list">
+            <p class="text-muted" style="padding:8px 4px;">Aucun objectif pour le moment. Ajoutez-en un ou utilisez les suggestions ci-dessus.</p>
+          </div>
+        </div>
+      </section>
+
+      <div data-inject="app-footer" data-left="© 2024 IntelliTamed — Objectifs"></div>
+    </div>
+  </div>
+
+  <!-- Modale ajout -->
+  <div class="modal-overlay" id="obj-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="obj-modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="obj-modal-title">Ajouter un objectif</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="obj-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="obj-input">Objectif</label>
+            <input class="form-input" type="text" id="obj-input" placeholder="Ex. : Lever 100 000 € avant décembre" maxlength="200">
+            <p class="form-error" data-error-for="obj-input"></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+          <button class="btn btn-primary" type="submit" id="obj-save">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/components.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/objectives.js"></script>
+</body>
+</html>

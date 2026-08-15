@@ -33,7 +33,7 @@
           </p>
         </div>
         <div class="page-actions">
-          <button class="btn btn-secondary" type="button" data-toast="Export du rapport en cours…">
+          <button class="btn btn-secondary" type="button" id="export-report">
             <span class="btn-icon-inline">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </span>
@@ -100,13 +100,15 @@
             <section class="card">
               <div class="card-header">
                 <div>
-                  <h2 class="card-title">Tendances de Croissance du Secteur</h2>
-                  <p class="card-subtitle">Projection basée sur les 7 derniers mois d'activité</p>
+                  <h2 class="card-title">Résumé de l'analyse</h2>
+                  <p class="card-subtitle">Synthèse générée par l'IA à partir des données du projet</p>
                 </div>
-                <span class="chip chip-blue">Croissance</span>
+                <span class="chip chip-blue">Synthèse IA</span>
               </div>
               <div class="card-body">
-                <div data-chart='{"type":"line","height":280,"labels":["Jan","Fév","Mar","Avr","Mai","Juin"],"series":[{"name":"Croissance","color":"#2563EB","data":[25,32,38,52,61,74]}]}'></div>
+                <p data-analysis-summary style="font-size:14px;line-height:1.7;color:var(--dark-text);">
+                  Lancez « Analyser avec Gemini » pour générer l'analyse de votre projet.
+                </p>
               </div>
             </section>
           </div>

@@ -326,3 +326,63 @@
     padding-left: calc(38px + var(--space-3));
   }
 }
+
+/* ---------- Modale analyse d'idée ---------- */
+.modal-lg {
+  max-width: 760px;
+}
+.idea-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.idea-result-body {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.idea-section {
+  padding: 12px 0;
+  border-bottom: 1px solid #EEF2F7;
+}
+.idea-section:first-child {
+  padding-top: 0;
+}
+.idea-section:last-child {
+  border-bottom: none;
+}
+.idea-section h4 {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #2563EB;
+  margin: 0 0 6px;
+}
+.idea-section p {
+  margin: 0;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.55;
+}
+.idea-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.idea-list li {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.55;
+  padding: 2px 0;
+}
+.idea-list .msg-bullet {
+  color: #2563EB;
+  font-weight: 700;
+  flex-shrink: 0;
+}

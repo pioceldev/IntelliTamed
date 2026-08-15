@@ -115,6 +115,12 @@
     saveOnboarding: function (payload) {
       return this.request("auth/onboarding", { method: "POST", body: payload });
     },
+    changePassword: function (currentPassword, newPassword) {
+      return this.request("auth/change-password", {
+        method: "POST",
+        body: { current_password: currentPassword, new_password: newPassword }
+      });
+    },
     requestPasswordReset: function (email) {
       return this.request("auth/password-reset", { method: "POST", body: { email: email } });
     },
@@ -160,6 +166,25 @@
     analyzeProject: function (id) {
       return this.request("projects/" + id + "/analyze/", { method: "POST", timeout: 120000 });
     },
+    analyzeIdea: function (idea) {
+      return this.request("projects/analyze_idea/", {
+        method: "POST",
+        body: { idea: idea },
+        timeout: 120000
+      });
+    },
+    verifyEmail: function (token) {
+      return this.request("auth/email-verify", { method: "POST", body: { token: token } });
+    },
+    resendEmailVerification: function () {
+      return this.request("auth/email-verify/send", { method: "POST" });
+    },
+    deleteAccount: function () {
+      return this.request("auth/account", { method: "DELETE" });
+    },
+    getProjectAnalyses: function (id) {
+      return this.safeRequest("projects/" + id + "/analyses/");
+    },
 
     /* ---------- Opportunités / watchlist ---------- */
     listOpportunities: function (params) {
@@ -198,6 +223,14 @@
     },
     deleteActionStep: function (id) {
       return this.request("action-steps/" + id + "/", { method: "DELETE" });
+    },
+
+    /* ---------- Abonnement ---------- */
+    getSubscription: function () {
+      return this.safeRequest("subscriptions");
+    },
+    changePlan: function (plan) {
+      return this.request("subscriptions", { method: "POST", body: { plan: plan } });
     },
 
     /* ---------- Notifications ---------- */

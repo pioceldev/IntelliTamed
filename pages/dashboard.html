@@ -35,7 +35,13 @@
               <option>Cette année</option>
             </select>
           </div>
-          <button class="btn btn-primary" type="button" data-toast="Nouvelle analyse IA lancée sur vos projets actifs.">
+          <button class="btn btn-secondary" type="button" id="idea-analysis-btn">
+            <span class="btn-icon-inline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></svg>
+            </span>
+            Analyser une idée
+          </button>
+          <button class="btn btn-primary" type="button" id="new-analysis-btn">
             <span class="btn-icon-inline">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
             </span>
@@ -173,7 +179,7 @@
                   <strong>Exporter les données</strong>
                   <p>Rapport complet de vos projets au format PDF.</p>
                 </div>
-                <button class="btn-icon" type="button" data-toast="Export en cours… votre rapport sera téléchargé." aria-label="Exporter les données">
+                <button class="btn-icon" type="button" id="export-data-btn" aria-label="Exporter les données">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
               </div>
@@ -201,6 +207,43 @@
       </section>
 
       <div data-inject="app-footer" data-left="© 2024 IntelliTamed SaaS. Système de Design Premium."></div>
+    </div>
+  </div>
+
+  <!-- ============ MODALE ANALYSE D'IDÉE ============ -->
+  <div class="modal-overlay" id="idea-modal" hidden>
+    <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="idea-modal-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="idea-modal-title">Analyser une idée avec Gemini</h3>
+        <button class="btn-icon" type="button" data-modal-close aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="idea-form">
+          <div class="form-group">
+            <label class="form-label" for="idea-text">Décrivez votre idée <span class="req">*</span></label>
+            <textarea class="form-textarea" id="idea-text" rows="4" placeholder="Ex. : Je veux créer une plateforme permettant aux restaurants de trouver rapidement des travailleurs temporaires."></textarea>
+            <p class="form-hint">L'IA analyse : problème, solution, public cible, concurrence, risques, modèle économique et prochaines étapes.</p>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" type="button" data-modal-close>Annuler</button>
+            <button class="btn btn-primary" type="submit" id="idea-submit">Analyser avec Gemini</button>
+          </div>
+        </form>
+        <div id="idea-result" hidden>
+          <div class="idea-result-head">
+            <span class="chip chip-green">Analyse générée par Gemini</span>
+            <button class="btn btn-secondary btn-sm" type="button" id="idea-to-project">Créer un projet depuis cette analyse</button>
+          </div>
+          <div class="idea-result-body"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Fermer</button>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 

@@ -30,7 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "role", "first_name", "last_name", "date_joined")
+        fields = ("id", "email", "role", "first_name", "last_name", "is_staff", "date_joined")
 
 
 class AdminOpportunitySerializer(serializers.ModelSerializer):
@@ -47,13 +47,14 @@ class AdminOpportunitySerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
+    email_verified = serializers.BooleanField(source="user.email_verified", read_only=True)
 
     class Meta:
         model = Profile
         fields = (
-            "email", "first_name", "last_name", "country", "bio", "website", "linkedin",
-            "profile_type", "domain", "skills", "experience", "goals", "interests",
-            "ai_preferences", "onboarding_completed",
+            "email", "email_verified", "first_name", "last_name", "avatar", "country",
+            "bio", "website", "linkedin", "profile_type", "domain", "skills",
+            "experience", "goals", "interests", "ai_preferences", "onboarding_completed",
         )
 
     def update(self, instance, validated_data):

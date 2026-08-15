@@ -380,6 +380,33 @@
       }
     });
 
+    // Analyse IA collective : lance l'analyse Gemini du premier projet (le plus avancé)
+    var collectiveBtn = $("#collective-analysis");
+    if (collectiveBtn) {
+      collectiveBtn.addEventListener("click", function () {
+        if (!projects.length) {
+          if (window.IntelliApp) window.IntelliApp.showToast("Créez d'abord un projet à analyser.", "error");
+          return;
+        }
+        collectiveBtn.classList.add("is-loading");
+        collectiveBtn.disabled = true;
+        var best = projects.slice().sort(function (a, b) { return b.progress - a.progress; })[0];
+        window.IntelliAPI.analyzeProject(best.apiId).then(function () {
+          if (window.IntelliApp) {
+            window.IntelliApp.showToast("Analyse Gemini générée pour « " + best.name + " ».", "success");
+          }
+          setTimeout(function () { window.location.href = "project-analysis.html?id=" + best.apiId; }, 900);
+        }).catch(function (err) {
+          if (window.IntelliApp) {
+            window.IntelliApp.showToast((err && err.message) || "Analyse impossible. Réessayez dans un instant.", "error");
+          }
+        }).then(function () {
+          collectiveBtn.classList.remove("is-loading");
+          collectiveBtn.disabled = false;
+        });
+      });
+    }
+
     // Confirmation suppression → API
     $("#delete-confirm").addEventListener("click", function () {
       if (!deletingApiId) return;

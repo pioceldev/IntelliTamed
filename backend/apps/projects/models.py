@@ -12,6 +12,7 @@ class Project(models.Model):
         DEVELOPMENT = "development", "Développement"
         LAUNCHED = "launched", "Lancé"
         GROWTH = "growth", "Croissance"
+        ARCHIVED = "archived", "Archivé"
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects"

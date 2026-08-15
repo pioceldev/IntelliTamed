@@ -1,0 +1,160 @@
+/* ============================================================
+   IntelliTamed — Objectifs
+   ============================================================ */
+
+.obj-progress-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.obj-ring {
+  flex-shrink: 0;
+}
+
+.obj-progress-card strong {
+  display: block;
+  font-size: var(--font-size-base);
+  color: var(--dark-text);
+  margin-bottom: 4px;
+}
+
+.obj-progress-card span {
+  font-size: var(--font-size-sm);
+  color: var(--secondary-text);
+}
+
+.obj-suggestions-card {
+  margin-top: var(--space-5);
+}
+
+.obj-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.obj-suggestions .suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--font-size-sm);
+  color: var(--dark-text);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.obj-suggestions .suggestion-chip:hover {
+  border-color: var(--ai-blue);
+  box-shadow: var(--shadow-sm);
+  background: var(--light-gray);
+}
+
+/* Liste */
+.obj-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.obj-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+
+.obj-item:last-child {
+  border-bottom: none;
+}
+
+.obj-item:hover {
+  background: var(--light-gray);
+}
+
+.obj-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.obj-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--border-color);
+  border-radius: 50%;
+  color: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.obj-check svg {
+  width: 13px;
+  height: 13px;
+}
+
+.obj-item input:checked + .obj-check {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+
+.obj-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--dark-text);
+  cursor: pointer;
+}
+
+.obj-item.is-done .obj-text {
+  text-decoration: line-through;
+  color: var(--secondary-text);
+}
+
+.obj-del {
+  opacity: 0;
+  color: var(--secondary-text);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.obj-item:hover .obj-del {
+  opacity: 1;
+}
+
+.obj-del:hover {
+  color: var(--error);
+  background: var(--error-soft);
+}
+
+.obj-del svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 640px) {
+  .obj-del {
+    opacity: 1;
+  }
+}

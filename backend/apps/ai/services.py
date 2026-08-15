@@ -241,6 +241,58 @@ class GeminiService:
         return {}
 
     # ------------------------------------------------------------------
+    # Analyse d'idée brute (sans projet créé)
+    # ------------------------------------------------------------------
+    IDEA_KEYS = (
+        "problem", "solution", "target_audience", "value_proposition",
+        "opportunities", "risks", "competition", "feasibility",
+        "business_model", "recommendations", "next_steps",
+    )
+
+    @staticmethod
+    def analyze_idea(idea):
+        """Analyse complète d'une idée brute → JSON structuré validé."""
+        prompt = (
+            "Tu es un expert en venture building. Analyse cette idée entrepreneuriale et "
+            "réponds UNIQUEMENT avec un objet JSON valide (sans texte autour) au format :\n"
+            '{"problem": "...", "solution": "...", "target_audience": "...", '
+            '"value_proposition": "...", "opportunities": ["..."], "risks": ["..."], '
+            '"competition": ["..."], "feasibility": "...", "business_model": "...", '
+            '"recommendations": ["..."], "next_steps": ["..."]}\n\n'
+            "Règles : problem, solution, target_audience, value_proposition, feasibility et "
+            "business_model sont des chaînes concises ; opportunities, risks, competition, "
+            "recommendations et next_steps sont des listes de 3 à 5 éléments concrets et "
+            "actionnables en français. Sois challenger : identifie les vrais risques."
+            "\n\nIdée à analyser : " + str(idea)[:4000]
+        )
+        raw = GeminiService.generate(prompt, max_tokens=8192)
+        parsed = GeminiService._parse_json(raw)
+        return GeminiService._validate_idea(parsed)
+
+    @staticmethod
+    def _validate_idea(data):
+        """Valide/normalise la sortie d'une analyse d'idée — jamais de confiance aveugle."""
+        if not isinstance(data, dict):
+            data = {}
+        string_keys = (
+            "problem", "solution", "target_audience", "value_proposition",
+            "feasibility", "business_model",
+        )
+        for key in string_keys:
+            raw = data.get(key, "")
+            if isinstance(raw, list):
+                raw = " ".join(str(i) for i in raw)
+            data[key] = str(raw)[:4000]
+        list_keys = ("opportunities", "risks", "competition", "recommendations", "next_steps")
+        for key in list_keys:
+            if key not in data:
+                data[key] = []
+            if not isinstance(data[key], list):
+                data[key] = [str(data[key])]
+            data[key] = [str(item)[:2000] for item in data[key][:6]]
+        return data
+
+    # ------------------------------------------------------------------
     # Génération de plan d'action structuré
     # ------------------------------------------------------------------
     PLAN_PHASES = ("phase-1", "phase-2", "phase-3", "phase-4")

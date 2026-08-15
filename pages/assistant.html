@@ -43,9 +43,21 @@
                 <span class="ai-active" id="ai-status" title="Vérification de la connexion…">Connexion…</span>
               </div>
             </div>
-            <button class="btn-icon" type="button" data-toast="Menu de conversation — démonstration frontend." aria-label="Options de la conversation">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-            </button>
+            <div class="chat-options" id="chat-options">
+              <button class="btn-icon" type="button" id="chat-options-btn" aria-label="Options de la conversation" aria-expanded="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              </button>
+              <div class="chat-options-menu" id="chat-options-menu" hidden>
+                <button type="button" id="opt-new-chat">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nouvelle discussion
+                </button>
+                <button type="button" id="opt-delete-chat">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Supprimer cette conversation
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="chat-messages" id="chat-messages" aria-live="polite">
