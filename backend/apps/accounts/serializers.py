@@ -2,8 +2,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from apps.opportunities.models import Opportunity
-
 from .models import Profile, User
 
 
@@ -31,18 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "email", "role", "first_name", "last_name", "is_staff", "date_joined")
-
-
-class AdminOpportunitySerializer(serializers.ModelSerializer):
-    """Création d'opportunité par l'administration."""
-
-    class Meta:
-        model = Opportunity
-        fields = (
-            "id", "title", "organization", "description", "category",
-            "location", "remote", "deadline", "link", "status", "created_at",
-        )
-        read_only_fields = ("id", "created_at")
 
 
 class ProfileSerializer(serializers.ModelSerializer):

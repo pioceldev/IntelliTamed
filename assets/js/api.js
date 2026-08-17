@@ -260,9 +260,7 @@
     adminProjects: function () {
       return this.safeRequest("auth/admin/projects");
     },
-    adminCreateOpportunity: function (payload) {
-      return this.request("auth/admin/opportunities", { method: "POST", body: payload });
-    }
+
   };
 
   global.IntelliAPI = API;

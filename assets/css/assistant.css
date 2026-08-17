@@ -272,6 +272,20 @@
   height: 17px;
 }
 
+.suggestion-icon.blue { background: var(--blue-soft); color: var(--electric-blue); }
+.suggestion-icon.violet { background: var(--violet-soft); color: var(--violet); }
+.suggestion-icon.green { background: var(--success-soft); color: var(--success); }
+.suggestion-icon.amber { background: #FEF3C7; color: #D97706; }
+
+.suggest-commands-label {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--secondary-text);
+}
+
 .suggestion-chip strong {
   display: block;
   font-size: var(--font-size-sm);

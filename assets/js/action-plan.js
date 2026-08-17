@@ -21,6 +21,8 @@
   var tasks = {}; // phaseId -> [task]
   var activeTaskId = null;
   var planId = null;   // id du plan côté serveur (null = local)
+  var plans = [];      // tous les plans d'action de l'utilisateur
+  var selectedPlanIndex = 0;
 
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -37,35 +39,56 @@
   }
 
   /* ---------- Synchronisation serveur ---------- */
+  function applyPlan(plan) {
+    planId = plan.id;
+    setServerStatus("plan", plan);
+    tasks = {};
+    (plan.steps || []).forEach(function (step) {
+      var phase = PHASES.some(function (p) { return p.id === step.phase; }) ? step.phase : "phase-1";
+      if (!tasks[phase]) tasks[phase] = [];
+      tasks[phase].push({
+        id: "srv-" + step.id,
+        serverId: step.id,
+        title: step.title,
+        desc: step.description || "",
+        category: step.category || "",
+        priority: step.priority || "medium",
+        time: step.deadline || "",
+        done: step.status === "done"
+      });
+    });
+    renderPhases();
+    renderTaskDetail();
+    updateProgress();
+  }
+
+  function renderPlanSelector() {
+    var sel = document.getElementById("plan-select");
+    if (!sel) return;
+    if (plans.length <= 1) {
+      sel.hidden = true;
+      return;
+    }
+    sel.hidden = false;
+    sel.innerHTML = plans.map(function (p, i) {
+      var label = p.title || ("Plan d'action " + (i + 1));
+      if (p.project_name) label += " — " + p.project_name;
+      return '<option value="' + i + '">' + esc(label) + "</option>";
+    }).join("");
+    sel.value = String(selectedPlanIndex);
+  }
+
   function loadFromServer() {
     if (!isApi()) return Promise.resolve(false);
     return window.IntelliAPI.listActionPlans().then(function (data) {
-      var plans = (data && data.results) || [];
+      plans = (data && data.results) || [];
       if (!plans.length) {
         setServerStatus("no-plan");
         return false;
       }
-      var plan = plans[0];
-      planId = plan.id;
-      setServerStatus("plan", plan);
-      tasks = {};
-      (plan.steps || []).forEach(function (step) {
-        var phase = PHASES.some(function (p) { return p.id === step.phase; }) ? step.phase : "phase-1";
-        if (!tasks[phase]) tasks[phase] = [];
-        tasks[phase].push({
-          id: "srv-" + step.id,
-          serverId: step.id,
-          title: step.title,
-          desc: step.description || "",
-          category: step.category || "",
-          priority: step.priority || "medium",
-          time: step.deadline || "",
-          done: step.status === "done"
-        });
-      });
-      renderPhases();
-      renderTaskDetail();
-      updateProgress();
+      if (selectedPlanIndex >= plans.length) selectedPlanIndex = 0;
+      renderPlanSelector();
+      applyPlan(plans[selectedPlanIndex]);
       return true;
     }).catch(function () {
       return false;
@@ -121,27 +144,18 @@
         return;
       }
       return window.IntelliAPI.generateActionPlan(projects[0].id).then(function (plan) {
-        planId = plan.id;
-        tasks = {};
-        (plan.steps || []).forEach(function (step) {
-          var phase = PHASES.some(function (p) { return p.id === step.phase; }) ? step.phase : "phase-1";
-          if (!tasks[phase]) tasks[phase] = [];
-          tasks[phase].push({
-            id: "srv-" + step.id,
-            serverId: step.id,
-            title: step.title,
-            desc: step.description || "",
-            category: step.category || "",
-            priority: step.priority || "medium",
-            time: "",
-            done: step.status === "done"
-          });
+        return loadFromServer().then(function () {
+          // Sélectionne le plan fraîchement généré
+          for (var i = 0; i < plans.length; i++) {
+            if (plans[i].id === plan.id) {
+              selectedPlanIndex = i;
+              break;
+            }
+          }
+          renderPlanSelector();
+          applyPlan(plans[selectedPlanIndex]);
+          if (window.IntelliApp) window.IntelliApp.showToast("Plan stratégique généré par Gemini 🚀", "success");
         });
-        setServerStatus("plan", plan);
-        renderPhases();
-        renderTaskDetail();
-        updateProgress();
-        if (window.IntelliApp) window.IntelliApp.showToast("Plan stratégique généré par Gemini 🚀", "success");
       });
     }).catch(function (err) {
       if (window.IntelliApp) window.IntelliApp.showToast((err && err.message) || "Génération impossible.", "error");
@@ -357,6 +371,16 @@
     // Bouton « Générer avec Gemini » de la barre d'outils
     var toolbarBtn = document.getElementById("toolbar-gen-btn");
     if (toolbarBtn) toolbarBtn.addEventListener("click", generateWithGemini);
+
+    // Sélecteur de plan (plusieurs plans d'action possibles)
+    var planSelect = document.getElementById("plan-select");
+    if (planSelect) {
+      planSelect.addEventListener("change", function () {
+        selectedPlanIndex = parseInt(planSelect.value, 10) || 0;
+        var plan = plans[selectedPlanIndex];
+        if (plan) applyPlan(plan);
+      });
+    }
 
     // Clic sur une tâche : sélectionner + détail
     document.addEventListener("click", function (e) {

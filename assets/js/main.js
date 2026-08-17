@@ -239,8 +239,9 @@
 
   /* ---------- Modales ---------- */
   function openModal(sel) {
-    var overlay = document.querySelector(sel);
-    if (!overlay) return;
+    // Accepte un sélecteur ("#id") OU un élément DOM directement
+    var overlay = typeof sel === "string" ? document.querySelector(sel) : sel;
+    if (!overlay || !overlay.classList) return;
     overlay.hidden = false;
     requestAnimationFrame(function () { overlay.classList.add("open"); });
     document.body.style.overflow = "hidden";

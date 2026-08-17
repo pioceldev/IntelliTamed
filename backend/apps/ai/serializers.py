@@ -13,11 +13,16 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class ConversationSerializer(serializers.ModelSerializer):
     message_count = serializers.IntegerField(source="messages.count", read_only=True)
+    preview = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = ("id", "title", "created_at", "updated_at", "message_count")
+        fields = ("id", "title", "created_at", "updated_at", "message_count", "preview")
         read_only_fields = ("id", "created_at", "updated_at")
+
+    def get_preview(self, obj):
+        last = obj.messages.order_by("-created_at").first()
+        return (last.content or "")[:80] if last else ""
 
 
 class ConversationDetailSerializer(ConversationSerializer):

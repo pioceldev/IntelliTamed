@@ -117,6 +117,9 @@ def _database_from_url(url):
         # WAMP/XAMPP utilisent MyISAM par défaut — InnoDB est requis
         # pour les index utf8mb4 (clés longues) et les FK.
         options["init_command"] = "SET default_storage_engine=InnoDB, sql_mode=STRICT_TRANS_TABLES"
+        # utf8mb4 obligatoire : les réponses de l'IA contiennent des emojis
+        # (4 octets) que le charset utf8mb3 par défaut refuse d'accepter.
+        options["charset"] = "utf8mb4"
     return {
         "ENGINE": engine,
         "NAME": dbname or "intellitamed",

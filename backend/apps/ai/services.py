@@ -55,6 +55,67 @@ class GeminiError(Exception):
     """Erreur d'appel à l'API Gemini."""
 
 
+def build_user_context(user):
+    """Assemble l'état réel de l'utilisateur (profil, projets, plan, activités)
+    pour personnaliser les réponses de l'IA — assistant, analyses de projet
+    et plans d'action."""
+    from apps.action_plans.models import ActionPlan
+    from apps.projects.models import Project
+
+    lines = []
+    profile = getattr(user, "profile", None)
+    if profile:
+        lines.append(
+            "Profil : type = " + (profile.profile_type or "non renseigné")
+            + " ; domaine = " + (profile.domain or "non renseigné")
+            + " ; pays = " + (profile.country or "non renseigné")
+            + " ; expérience = " + (profile.experience or "non renseignée")
+        )
+        if profile.skills:
+            lines.append("Compétences : " + ", ".join(str(s) for s in profile.skills))
+        if profile.bio:
+            lines.append("Bio : " + profile.bio[:400])
+    else:
+        lines.append("Profil : non complété")
+
+    projects = list(Project.objects.filter(owner=user).order_by("-updated_at")[:8])
+    if projects:
+        lines.append("Projets de l'utilisateur :")
+        for p in projects:
+            desc = (p.description or "")[:220].replace("\n", " ")
+            lines.append(
+                "- " + p.name + " | statut : " + p.get_status_display()
+                + " | progression : " + str(p.progress) + "%"
+                + " | catégorie : " + (p.category or "non précisée")
+                + (" | " + desc if desc else "")
+            )
+    else:
+        lines.append("Projets de l'utilisateur : AUCUN projet pour le moment.")
+
+    plan = ActionPlan.objects.filter(user=user, status=ActionPlan.Status.ACTIVE).first()
+    if plan:
+        lines.append("Plan d'action en cours : " + plan.title + " (progression " + str(plan.progress) + "%)")
+
+    conversations = user.conversations.count()
+    unread = user.notifications.filter(read=False).count()
+    watch = user.watchlist.count()
+    lines.append(
+        "Activité : " + str(conversations) + " conversation(s) avec l'assistant, "
+        + str(unread) + " notification(s) non lue(s), "
+        + str(watch) + " opportunité(s) en watchlist."
+    )
+
+    recent = []
+    for p in projects[:3]:
+        recent.append(p.name + " (" + p.get_status_display() + ")")
+    for n in user.notifications.all()[:2]:
+        recent.append("Notification : " + n.title)
+    if recent:
+        lines.append("Activité récente : " + " ; ".join(recent))
+
+    return "\n".join(lines)
+
+
 def _quota_retry_delay(body):
     """Extrait le délai (secondes) conseillé par Gemini dans le corps d'une erreur 429."""
     match = re.search(r"retry in\s+([\d.]+)s", body, re.IGNORECASE)
@@ -110,6 +171,7 @@ class GeminiService:
 
         started = time.monotonic()
         last_quota = None
+        timed_out = False
         for cycle in range(MAX_CYCLES):
             for candidate in models:
                 url = f"{GEMINI_ENDPOINT.format(model=candidate)}?key={key}"
@@ -144,15 +206,23 @@ class GeminiService:
                 except urllib.error.URLError as exc:
                     logger.error("Gemini réseau (%s) : %s", candidate, exc.reason)
                     raise GeminiError("Impossible de joindre le service Gemini.") from exc
+                except TimeoutError as exc:
+                    timed_out = True
+                    logger.error("Gemini timeout (%s) : %s", candidate, exc)
+                    continue  # passe au modèle de secours (plus léger, plus rapide)
 
-            # Tous les modèles bloqués : pause (délai fourni par Gemini) puis nouveau cycle
+            # Tous les modèles bloqués/saturés : pause (délai fourni par Gemini) puis nouveau cycle
             if last_quota and cycle < MAX_CYCLES - 1:
                 delay = _quota_retry_delay(last_quota)
                 logger.warning("Tous les modèles Gemini saturés — pause %.0fs puis cycle %d/%d", delay, cycle + 2, MAX_CYCLES)
                 time.sleep(delay)
 
-        # Tous les modèles sont bloqués par le quota
-        raise GeminiError("Quota Gemini dépassé. Réessayez dans quelques instants.")
+        # Tous les modèles ont échoué : message adapté à la cause
+        if last_quota:
+            raise GeminiError("Quota Gemini dépassé. Réessayez dans quelques instants.")
+        if timed_out:
+            raise GeminiError("Le service Gemini met trop de temps à répondre. Réessayez.")
+        raise GeminiError("Impossible d'obtenir une réponse de Gemini. Réessayez.")
 
     @staticmethod
     def _extract_text(data):
@@ -175,8 +245,12 @@ class GeminiService:
     )
 
     @staticmethod
-    def analyze_project(project):
-        """Génère une analyse structurée JSON d'un projet et la valide."""
+    def analyze_project(project, context=None):
+        """Génère une analyse structurée JSON d'un projet et la valide.
+
+        `context` (optionnel) : état de l'utilisateur (profil, autres projets,
+        activités) pour personnaliser l'analyse.
+        """
         prompt = (
             "Analyse ce projet entrepreneurial et réponds UNIQUEMENT avec un objet JSON "
             "valide (sans texte autour) au format :\n"
@@ -193,6 +267,12 @@ class GeminiService:
             f"Progression : {project.progress}%\n\n"
             "Chaque liste contient 3 à 5 éléments concrets et actionnables en français."
         )
+        if context:
+            prompt += (
+                "\n\nCONTEXTE DE L'ENTREPRENEUR (profil, autres projets, activités — "
+                "utilise-le pour personnaliser l'analyse, n'invente jamais d'élément absent) :\n"
+                + str(context)[:4000]
+            )
         raw = GeminiService.generate(prompt, max_tokens=8192)
         parsed = GeminiService._parse_json(raw)
         return GeminiService._validate_analysis(parsed)
@@ -313,8 +393,12 @@ class GeminiService:
     PLAN_PRIORITIES = ("high", "medium", "low")
 
     @staticmethod
-    def generate_action_plan(project):
-        """Génère un plan d'action structuré (JSON validé) depuis un projet."""
+    def generate_action_plan(project, context=None):
+        """Génère un plan d'action structuré (JSON validé) depuis un projet.
+
+        `context` (optionnel) : état de l'utilisateur (profil, autres projets,
+        activités) pour personnaliser les étapes.
+        """
         prompt = (
             "Génère un plan d'action stratégique pour ce projet entrepreneurial. "
             "Réponds UNIQUEMENT avec un objet JSON valide (sans texte autour) au format :\n"
@@ -335,6 +419,12 @@ class GeminiService:
             f"Progression : {project.progress}%\n"
             f"Catégorie : {project.category or 'Non précisée'}"
         )
+        if context:
+            prompt += (
+                "\n\nCONTEXTE DE L'ENTREPRENEUR (profil, autres projets, activités — "
+                "adapte les étapes à sa situation, n'invente jamais d'élément absent) :\n"
+                + str(context)[:4000]
+            )
         raw = GeminiService.generate(prompt, max_tokens=8192)
         parsed = GeminiService._parse_json(raw)
         return GeminiService._validate_plan(parsed)

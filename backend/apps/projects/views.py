@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.ai.models import AIRequest
-from apps.ai.services import DEFAULT_MODEL, GeminiError, GeminiService
+from apps.ai.services import DEFAULT_MODEL, GeminiError, GeminiService, build_user_context
 
 from .models import Project, ProjectAnalysis
 from .serializers import ProjectAnalysisSerializer, ProjectSerializer
@@ -38,7 +38,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
             user=request.user, request_type=AIRequest.RequestType.ANALYZE
         )
         try:
-            data = GeminiService.analyze_project(project)
+            data = GeminiService.analyze_project(
+                project, context=build_user_context(request.user)
+            )
         except GeminiError as exc:
             req.status = AIRequest.Status.ERROR
             req.error = str(exc)

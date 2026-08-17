@@ -398,7 +398,11 @@ class AdminProjectsView(APIView):
 
 
 class AdminOpportunitiesView(APIView):
-    """GET/POST /api/admin/opportunities — gestion des opportunités (staff)."""
+    """GET /api/admin/opportunities — consultation des opportunités (staff).
+
+    La création est 100 % dynamique : les opportunités sont générées par l'IA
+    pour chaque utilisateur (aucune opportunité statique).
+    """
 
     permission_classes = [permissions.IsAdminUser]
 
@@ -418,14 +422,6 @@ class AdminOpportunitiesView(APIView):
             for o in opps
         ]
         return Response({"results": data, "count": len(data)})
-
-    def post(self, request):
-        from .serializers import AdminOpportunitySerializer
-
-        serializer = AdminOpportunitySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        opp = serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AdminStatsView(APIView):

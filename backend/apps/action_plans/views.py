@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.ai.models import AIRequest
-from apps.ai.services import GeminiError, GeminiService
+from apps.ai.services import GeminiError, GeminiService, build_user_context
 from apps.projects.models import Project
 
 from .models import ActionPlan, ActionStep
@@ -53,7 +53,9 @@ class ActionPlanViewSet(viewsets.ModelViewSet):
             user=request.user, request_type=AIRequest.RequestType.ACTION_PLAN
         )
         try:
-            data = GeminiService.generate_action_plan(project)
+            data = GeminiService.generate_action_plan(
+                project, context=build_user_context(request.user)
+            )
         except (GeminiError, ValueError) as exc:
             ai_req.status = AIRequest.Status.ERROR
             ai_req.error = str(exc)

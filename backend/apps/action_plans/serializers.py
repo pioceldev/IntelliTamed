@@ -18,11 +18,15 @@ class ActionPlanSerializer(serializers.ModelSerializer):
     progress = serializers.IntegerField(read_only=True)
     steps = ActionStepSerializer(many=True, read_only=True)
     step_count = serializers.IntegerField(source="steps.count", read_only=True)
+    project_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ActionPlan
         fields = (
-            "id", "user", "project", "title", "description",
+            "id", "user", "project", "project_name", "title", "description",
             "status", "progress", "step_count", "steps", "created_at", "updated_at",
         )
         read_only_fields = ("id", "user", "created_at", "updated_at")
+
+    def get_project_name(self, obj):
+        return obj.project.name if obj.project else ""

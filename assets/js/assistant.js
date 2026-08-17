@@ -36,6 +36,7 @@
   function markdownLight(text) {
     var out = esc(text);
     out = out.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
     out = out.replace(/(?:^|\n)• /g, "\n<span class='msg-bullet'>•</span> ");
     out = out.replace(/(?:^|\n)(\d+)\. /g, "\n<span class='msg-bullet'>$1.</span> ");
     return out.replace(/\n/g, "<br>");
@@ -163,12 +164,13 @@
           throw new Error("Gemini n'a pas renvoyé de réponse.");
         }
         // La conversation locale « new » devient une conversation serveur :
-        // on supprime la clé locale pour éviter le doublon dans l'historique.
+        // on la déplace sous sa clé serveur (les messages locaux sont conservés).
         if (data.conversation_id) {
           var srvKey = "srv-" + data.conversation_id;
           var localKey = currentConversation;
-          if (localKey !== srvKey && conversations[localKey] === conv) {
-            delete conversations[localKey];
+          if (localKey !== srvKey) {
+            if (conversations[localKey] === conv) delete conversations[localKey];
+            conversations[srvKey] = conv;
           }
           conv.serverId = data.conversation_id;
           currentConversation = srvKey;
@@ -177,19 +179,8 @@
         renderMessages(conv.messages);
         setBusy(false);
         if (chatTitle && conv.title) chatTitle.textContent = conv.title;
-        // Recharge l'historique serveur pour rester synchronisé (titre, dates, messages)
-        loadServerConversations().then(function () {
-          if (data.conversation_id) {
-            // La version serveur fait foi : on reprend la conversation fraîchement chargée
-            var fresh = conversations["srv-" + data.conversation_id];
-            if (fresh) {
-              currentConversation = "srv-" + data.conversation_id;
-              renderMessages(fresh.messages || []);
-              if (chatTitle) chatTitle.textContent = fresh.title || conv.title || "Conversation";
-            }
-            updateHistory();
-          }
-        });
+        // Rafraîchit la liste de l'historique (titres, dates) sans recharger les messages
+        refreshHistoryList();
         checkGeminiStatus();
       })
       .catch(function (err) {
@@ -234,36 +225,63 @@
       });
   }
 
-  /* ---------- Historique serveur (seule source de vérité) ---------- */
-  function loadServerConversations() {
+  /* ---------- Historique serveur (seule source de vérité) ----------
+     La liste est chargée en une seule requête (rapide) ; les messages
+     d'une conversation sont chargés à la demande au clic. */
+  function friendlyDate(dateStr) {
+    if (!dateStr) return "";
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    var sameDay = function (a, b) {
+      return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    };
+    var today = new Date();
+    if (sameDay(d, today)) return "Aujourd'hui";
+    var y = new Date(today);
+    y.setDate(y.getDate() - 1);
+    if (sameDay(d, y)) return "Hier";
+    return d.toLocaleDateString("fr-FR");
+  }
+
+  function mapServerMessage(m) {
+    return {
+      role: m.role === "model" ? "ai" : "user",
+      text: m.content || "",
+      time: (m.created_at || "").slice(11, 16)
+    };
+  }
+
+  function refreshHistoryList() {
     if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return Promise.resolve();
     return window.IntelliAPI.listConversations().then(function (data) {
       var list = (data && data.results) || [];
-      var pending = list.map(function (conv) {
-        return window.IntelliAPI.getConversation(conv.id).then(function (detail) {
-          if (!detail || !detail.messages || !detail.messages.length) return;
-          var key = "srv-" + conv.id;
-          var sortDate = (conv.updated_at || conv.created_at || "").replace("T", " ").slice(0, 16);
-          conversations[key] = {
-            serverId: conv.id,
-            title: conv.title || "Conversation",
-            date: (conv.updated_at || conv.created_at || "").slice(0, 10),
-            sortDate: sortDate,
-            messages: detail.messages.map(function (m) {
-              return {
-                role: m.role === "model" ? "ai" : "user",
-                text: m.content || "",
-                time: (m.created_at || "").slice(11, 16)
-              };
-            })
-          };
-        });
+      list.forEach(function (conv) {
+        var key = "srv-" + conv.id;
+        var iso = (conv.updated_at || conv.created_at || "");
+        var existing = conversations[key];
+        conversations[key] = {
+          serverId: conv.id,
+          title: conv.title || "Conversation",
+          date: iso.slice(0, 10),
+          sortDate: iso.replace("T", " ").slice(0, 16),
+          preview: conv.preview || "",
+          messages: existing && existing.messages ? existing.messages : []
+        };
       });
-      return Promise.all(pending).then(function () {
-        serverLoaded = true;
-        updateHistory();
-      });
+      serverLoaded = true;
+      updateHistory();
     }).catch(function () { /* backend injoignable */ });
+  }
+
+  function loadConversationMessages(key) {
+    var conv = conversations[key];
+    if (!conv || !conv.serverId || (conv.messages && conv.messages.length)) return;
+    window.IntelliAPI.getConversation(conv.serverId).then(function (detail) {
+      if (!detail || !detail.messages) return;
+      conv.messages = detail.messages.map(mapServerMessage);
+      if (currentConversation === key) renderMessages(conv.messages);
+      updateHistory();
+    }).catch(function () { /* silencieux */ });
   }
 
   /* ---------- Historique (rendu, trié du plus récent au plus ancien) ---------- */
@@ -293,11 +311,11 @@
       btn.setAttribute("data-conversation", id);
 
       var first = conv.messages[0];
-      var preview = first ? first.text : "";
+      var preview = conv.preview || (first ? first.text : "");
       btn.innerHTML =
         "<strong>" + esc(conv.title || "Conversation") + "</strong>" +
-        "<span>" + esc(preview.length > 40 ? preview.slice(0, 40) + "…" : preview) + "</span>" +
-        "<small>" + esc(conv.date || "") + "</small>";
+        "<span>" + esc(preview.length > 44 ? preview.slice(0, 44) + "…" : preview) + "</span>" +
+        "<small>" + esc(friendlyDate(conv.date)) + "</small>";
 
       btn.addEventListener("click", function () {
         if (id === currentConversation) return;
@@ -308,6 +326,8 @@
         else hideSuggestions();
         renderMessages(conv.messages);
         updateHistory();
+        // Charge les messages à la demande (historique rapide)
+        loadConversationMessages(id);
       });
       li.appendChild(btn);
 
@@ -421,6 +441,17 @@
       });
     });
 
+    // Chips de commandes : pré-remplissent la saisie (l'utilisateur complète puis Entrée)
+    document.querySelectorAll("[data-command]").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        if (!input) return;
+        input.value = chip.getAttribute("data-command");
+        input.focus();
+        autoResize();
+        input.setSelectionRange(input.value.length, input.value.length);
+      });
+    });
+
     var newBtn = document.getElementById("new-chat-btn");
     if (newBtn) newBtn.addEventListener("click", newConversation);
 
@@ -437,7 +468,7 @@
     newConversation(true);
     updateHistory();
     checkGeminiStatus();
-    loadServerConversations();
+    refreshHistoryList();
     initChatOptions();
 
     // Prompt pré-rempli depuis une autre page (ex: opportunités → assistant)
