@@ -509,7 +509,7 @@
       var period = btn.getAttribute("data-invoice");
       var content = "FACTURE — INTELLITAMED\n" +
         "=======================\n" +
-        "Période : " + (period === "juin-2024" ? "juin 2024" : "juillet 2024") + "\n" +
+        "Période : " + (period === "juin-2026" ? "juin 2026" : "juillet 2026") + "\n" +
         "Plan : Essai Pro\n" +
         "Montant : 0,00 €\n" +
         "Statut : Payé\n" +

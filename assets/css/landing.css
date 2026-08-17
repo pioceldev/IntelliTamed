@@ -214,6 +214,7 @@
 /* Preview du dashboard */
 .hero-visual {
   position: relative;
+  isolation: isolate;
 }
 
 .hero-preview {
@@ -1013,6 +1014,8 @@
 
   .hero-visual {
     max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
   }
 
   .assistant-grid {
@@ -1030,7 +1033,7 @@
 
 @media (max-width: 768px) {
   .landing-nav-links,
-  .landing-nav-cta .btn-ghost {
+  .landing-nav-cta {
     display: none;
   }
 

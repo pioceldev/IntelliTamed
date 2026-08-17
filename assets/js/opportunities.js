@@ -14,6 +14,45 @@
   var allOpps = [];
   var watchlist = [];
   var activeTab = "all";
+  var autoGenerateTried = false;
+
+  // Génère des opportunités personnalisées via l'IA (profil + projets), puis recharge
+  function generateWithAI(showErrors) {
+    var btn = $("#generate-opps");
+    if (btn) {
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+    }
+    window.IntelliAPI.generateOpportunities().then(function (data) {
+      if (btn) {
+        btn.classList.remove("is-loading");
+        btn.disabled = false;
+      }
+      if (window.IntelliApp) {
+        window.IntelliApp.showToast((data.generated || 0) + " opportunité(s) générée(s) pour vous.", "success");
+      }
+      syncOpportunitiesFromApi();
+    }).catch(function (err) {
+      if (btn) {
+        btn.classList.remove("is-loading");
+        btn.disabled = false;
+      }
+      if (showErrors && window.IntelliApp) {
+        window.IntelliApp.showToast((err && err.message) || "Génération impossible.", "error");
+      }
+    });
+  }
+
+  // Si aucune opportunité n'existe et que l'utilisateur a des projets : génération auto (une seule fois)
+  function maybeAutoGenerate() {
+    if (autoGenerateTried) return;
+    autoGenerateTried = true;
+    if (!window.IntelliAPI || !window.IntelliAPI.getToken()) return;
+    window.IntelliAPI.listProjects().then(function (pd) {
+      var projects = (pd && pd.results) || [];
+      if (projects.length) generateWithAI(false);
+    });
+  }
 
   function $(sel) { return document.querySelector(sel); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -60,6 +99,7 @@
       });
       renderCards();
       renderRail(results);
+      if (!results.length) maybeAutoGenerate();
     }).catch(function () {
       renderCards();
     });
@@ -231,6 +271,14 @@
           refreshBtn.disabled = false;
           if (window.IntelliApp) window.IntelliApp.showToast("Opportunités actualisées.", "success");
         }, 800);
+      });
+    }
+
+    // Générer mes opportunités IA
+    var genBtn = $("#generate-opps");
+    if (genBtn) {
+      genBtn.addEventListener("click", function () {
+        generateWithAI(true);
       });
     }
 

@@ -629,7 +629,7 @@
   color: var(--dark-text);
 }
 
-.tab-btn.active {
+.tab-btn.is-active {
   color: var(--electric-blue);
   border-bottom-color: var(--electric-blue);
 }
@@ -638,7 +638,7 @@
   display: none;
 }
 
-.tab-panel.active {
+.tab-panel.is-active {
   display: block;
 }
 

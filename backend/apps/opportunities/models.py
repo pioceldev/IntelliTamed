@@ -34,6 +34,14 @@ class Opportunity(models.Model):
     status = models.CharField(
         "Statut", max_length=10, choices=Status.choices, default=Status.ACTIVE
     )
+    # Opportunité générée par l'IA pour un utilisateur (None = opportunité globale / admin)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="generated_opportunities",
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

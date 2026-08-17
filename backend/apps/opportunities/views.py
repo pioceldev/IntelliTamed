@@ -1,8 +1,12 @@
-"""Vues des opportunités : consultation, filtres, sauvegarde."""
+"""Vues des opportunités : consultation, filtres, génération IA, sauvegarde."""
+from django.db.models import Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from apps.ai.services import GeminiError, GeminiService
+from apps.projects.models import Project
 
 from .models import Opportunity, Watchlist
 from .serializers import OpportunitySerializer, WatchlistSerializer
@@ -17,7 +21,78 @@ class OpportunityViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["title", "organization", "description", "location"]
 
     def get_queryset(self):
-        return Opportunity.objects.filter(status=Opportunity.Status.ACTIVE)
+        # Opportunités globales (admin) + celles générées par l'IA pour cet utilisateur
+        return Opportunity.objects.filter(
+            status=Opportunity.Status.ACTIVE
+        ).filter(
+            Q(created_by__isnull=True) | Q(created_by=self.request.user)
+        )
+
+    @action(detail=False, methods=["post"], url_path="generate")
+    def generate(self, request):
+        """POST /api/opportunities/generate/ — génère des opportunités personnalisées
+        via l'IA à partir du profil et des projets de l'utilisateur connecté.
+        Les opportunités générées sont persistées (visibles uniquement par lui)."""
+        user = request.user
+        profile = getattr(user, "profile", None)
+
+        profile_lines = []
+        if profile:
+            profile_lines.append(f"Type de profil : {profile.profile_type or 'non renseigné'}")
+            profile_lines.append(f"Domaine : {profile.domain or 'non renseigné'}")
+            profile_lines.append(f"Pays : {profile.country or 'non renseigné'}")
+            profile_lines.append(f"Expérience : {profile.experience or 'non renseignée'}")
+            if profile.skills:
+                profile_lines.append("Compétences : " + ", ".join(str(s) for s in profile.skills))
+            if profile.bio:
+                profile_lines.append("Bio : " + profile.bio[:400])
+        if not profile_lines:
+            profile_lines.append("Profil non complété.")
+
+        projects = list(Project.objects.filter(owner=user).order_by("-updated_at")[:5])
+        project_lines = []
+        for p in projects:
+            project_lines.append(
+                f"- {p.name} | statut : {p.get_status_display()} | progression : {p.progress}% | "
+                f"catégorie : {p.category or 'non précisée'} | {p.description[:200]}"
+            )
+        if not project_lines:
+            project_lines.append("Aucun projet pour le moment.")
+
+        prompt = (
+            "Tu es un expert en venture building. À partir du profil et des projets de cet entrepreneur, "
+            "génère 5 opportunités concrètes et réalistes qui lui correspondent (financements, incubateurs, "
+            "hackathons, partenariats, missions freelance, formations, concours, emplois, études de marché). "
+            "Réponds UNIQUEMENT avec un objet JSON valide (sans texte autour) au format :\n"
+            '{"opportunities": [{"title": "...", "organization": "...", '
+            '"category": "emploi|freelance|hackathon|concours|formation|financement|incubateur|partenariat|recherche", '
+            '"location": "...", "remote": true, "description": "..."}]}\n'
+            "Règles : chaque description fait 2 à 4 phrases en français, concrète et actionnable, cohérente "
+            "avec le profil et les projets ; ne génère rien d'irréaliste ; varie les catégories.\n\n"
+            "PROFIL DE L'UTILISATEUR :\n" + "\n".join(profile_lines)
+            + "\n\nPROJETS DE L'UTILISATEUR :\n" + "\n".join(project_lines)
+        )
+
+        try:
+            raw = GeminiService.generate(prompt, max_tokens=8192)
+        except GeminiError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        items = GeminiService.parse_opportunities(raw)
+        if not items:
+            return Response(
+                {"error": "L'IA n'a pas généré d'opportunités valides. Réessayez."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        created = [
+            Opportunity.objects.create(
+                **item, created_by=user, status=Opportunity.Status.ACTIVE
+            )
+            for item in items
+        ]
+        serializer = self.get_serializer(created, many=True)
+        return Response({"results": serializer.data, "generated": len(created)})
 
     @action(detail=True, methods=["post", "delete"])
     def save(self, request, pk=None):

@@ -42,7 +42,12 @@ SYSTEM_PROMPT = (
     "- Couvre : validation de concept, analyse de marché, business model, pricing, plan d'action, levée de fonds. "
     "- Si l'utilisateur demande un plan d'action, propose de le retrouver dans son espace « Plan d'action ». "
     "- N'invente pas de chiffres précis : donne des ordres de grandeur à vérifier. "
-    "- Reste professionnel, premium et orienté solutions."
+    "- Reste professionnel, premium et orienté solutions. "
+    "- À chaque message tu reçois le CONTEXTE UTILISATEUR (profil, projets, plan d'action, activités). "
+    "Utilise-le systématiquement pour personnaliser tes réponses : quand l'utilisateur parle de « mon projet », "
+    "« mes projets » ou « mes activités », réponds à partir de ce contexte. "
+    "- N'invente JAMAIS de projet, d'activité ou de donnée absente du contexte : si le contexte indique "
+    "qu'il n'y a aucun projet, dis-le clairement et propose d'en créer un."
 )
 
 
@@ -65,8 +70,8 @@ class GeminiService:
     """Accès à l'API Gemini (generateContent)."""
 
     @staticmethod
-    def generate(prompt, history=None, model=None, max_tokens=1024):
-        """Envoie un prompt (+ historique optionnel) et retourne le texte généré."""
+    def generate(prompt, history=None, model=None, max_tokens=1024, context=None):
+        """Envoie un prompt (+ historique et contexte utilisateur optionnels) et retourne le texte généré."""
         key = os.environ.get("GEMINI_API_KEY", "")
         if not key:
             raise GeminiError("GEMINI_API_KEY non configurée côté serveur.")
@@ -83,8 +88,17 @@ class GeminiService:
         ]
         contents.append({"role": "user", "parts": [{"text": prompt[:8000]}]})
 
+        system = SYSTEM_PROMPT
+        if context:
+            system += (
+                "\n\n===== CONTEXTE UTILISATEUR (données réelles — à utiliser pour personnaliser "
+                "tes réponses) =====\n"
+                + str(context)[:6000]
+                + "\n===== FIN DU CONTEXTE ====="
+            )
+
         payload = {
-            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "systemInstruction": {"parts": [{"text": system}]},
             "contents": contents,
             "generationConfig": {
                 "temperature": 0.7,
@@ -374,3 +388,65 @@ class GeminiService:
                 data[key] = [str(data[key])]
             data[key] = [str(item)[:2000] for item in data[key][:6]]
         return data
+
+    # ------------------------------------------------------------------
+    # Opportunités personnalisées (générées depuis le profil + projets)
+    # ------------------------------------------------------------------
+    OPPORTUNITY_CATEGORIES = (
+        "emploi", "freelance", "hackathon", "concours", "formation",
+        "financement", "incubateur", "partenariat", "recherche",
+    )
+    # Libellés français tolérés → code de catégorie
+    OPPORTUNITY_CATEGORY_MAP = {
+        "emploi": "emploi", "job": "emploi", "poste": "emploi",
+        "freelance": "freelance", "mission": "freelance",
+        "hackathon": "hackathon",
+        "concours": "concours", "prix": "concours",
+        "formation": "formation", "cours": "formation", "apprentissage": "formation",
+        "financement": "financement", "levee de fonds": "financement", "subvention": "financement",
+        "incubateur": "incubateur", "accelerateur": "incubateur",
+        "partenariat": "partenariat", "collaboration": "partenariat",
+        "recherche": "recherche", "etude": "recherche", "marche": "recherche",
+    }
+
+    @staticmethod
+    def parse_opportunities(raw):
+        """Parse une liste d'opportunités générées (JSON validé) — jamais de confiance aveugle.
+
+        Renvoie une liste de dicts prêts à être créés (champs du modèle Opportunity),
+        sans le statut ni created_by (gérés par l'appelant).
+        """
+        data = GeminiService._parse_json(raw)
+        if not isinstance(data, dict):
+            data = {}
+        raw_list = data.get("opportunities")
+        if not isinstance(raw_list, list):
+            raw_list = data.get("results") if isinstance(data.get("results"), list) else []
+
+        items = []
+        for it in raw_list[:8]:
+            if not isinstance(it, dict):
+                continue
+            title = str(it.get("title") or "").strip()[:200]
+            if not title:
+                continue
+            category_raw = str(it.get("category") or "").strip().lower()[:40]
+            category = GeminiService.OPPORTUNITY_CATEGORY_MAP.get(category_raw)
+            if category not in GeminiService.OPPORTUNITY_CATEGORIES:
+                category = "partenariat"
+            description = str(it.get("description") or "").strip()[:2000]
+            if not description:
+                description = f"Opportunité : {title}"
+            items.append(
+                {
+                    "title": title,
+                    "organization": str(it.get("organization") or "IntelliTamed IA")[:200],
+                    "description": description,
+                    "category": category,
+                    "location": str(it.get("location") or "")[:150],
+                    "remote": bool(it.get("remote")),
+                    "deadline": None,
+                    "link": str(it.get("link") or "")[:200],
+                }
+            )
+        return items

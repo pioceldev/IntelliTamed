@@ -1,7 +1,20 @@
 """Serializers des opportunités."""
 from rest_framework import serializers
 
+from apps.projects.models import Project
+
 from .models import Opportunity, Watchlist
+
+
+def _user_projects(user):
+    """Projets de l'utilisateur (mémoïsés sur la requête pour éviter des requêtes répétées)."""
+    if not user or not user.is_authenticated:
+        return []
+    projects = getattr(user, "_matched_projects", None)
+    if projects is None:
+        projects = list(Project.objects.filter(owner=user).order_by("-updated_at")[:5])
+        user._matched_projects = projects
+    return projects
 
 
 # Mots-clés par catégorie : utilisés pour calculer la compatibilité avec le profil.
@@ -37,7 +50,12 @@ def _compute_match(obj, user):
     haystack = " ".join(
         [domain.lower(), " ".join(skills).lower(), " ".join(goals).lower(), " ".join(interests).lower()]
     )
-    haystack = (haystack + " " + obj.title.lower() + " " + obj.description.lower())[:4000]
+    # Les projets de l'utilisateur participent aussi au matching (matching dynamique)
+    projects = _user_projects(user)
+    projects_text = " ".join(
+        (p.name + " " + (p.description or "")) for p in projects
+    )
+    haystack = (haystack + " " + projects_text + " " + obj.title.lower() + " " + obj.description.lower())[:4000]
 
     score = 50.0
 
@@ -65,6 +83,14 @@ def _compute_match(obj, user):
     if obj.remote:
         score += 6
         reasons.append("Opportunité 100% en télétravail : flexible et accessible partout.")
+
+    # 4) Cohérence avec les projets de l'utilisateur
+    name_hits = [
+        p.name for p in projects if p.name and p.name.lower() in text
+    ][:2]
+    if name_hits:
+        score += min(len(name_hits), 2) * 4  # jusqu'à +8
+        reasons.append("Cohérent avec vos projets : " + ", ".join(name_hits) + ".")
 
     if not reasons:
         reasons.append(

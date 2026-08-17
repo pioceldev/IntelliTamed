@@ -58,9 +58,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        # Les champs prénom/nom remontent aussi sur l'utilisateur
-        first = validated_data.pop("first_name", None)
-        last = validated_data.pop("last_name", None)
+        # Prénom/nom : écrits sur le Profile ET synchronisés sur l'utilisateur
+        first = validated_data.get("first_name")
+        last = validated_data.get("last_name")
         profile = super().update(instance, validated_data)
         user = instance.user
         if first is not None:

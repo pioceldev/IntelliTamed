@@ -191,6 +191,9 @@
       var qs = params ? "?" + new URLSearchParams(params).toString() : "";
       return this.safeRequest("opportunities/" + qs);
     },
+    generateOpportunities: function () {
+      return this.request("opportunities/generate/", { method: "POST", timeout: 120000 });
+    },
     saveOpportunity: function (id) {
       return this.request("opportunities/" + id + "/save/", { method: "POST" });
     },

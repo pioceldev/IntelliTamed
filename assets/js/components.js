@@ -189,7 +189,7 @@
     cfg = cfg || {};
     var extra = cfg.extra || "";
     return '<footer class="app-footer">' +
-      '<span>' + (cfg.left || "© 2024 IntelliTamed — Plateforme de Venture Building par IA") + "</span>" +
+      '<span>' + (cfg.left || "© 2026 IntelliTamed — Plateforme de Venture Building par IA") + "</span>" +
       '<nav>' +
         (extra ? extra : "") +
         '<a href="#" data-toast="Documentation bientôt disponible.">Documentation</a>' +
