@@ -268,7 +268,6 @@
     $("#p-category").value = project ? catToUi(project.category) : "Stratégie";
     $("#p-status").value = project ? project.status : "in-progress";
     $("#p-priority").value = project ? project.priority : "medium";
-    $("#p-progress").value = project ? project.progress : 0;
     // Échéance : champ date natif (YYYY-MM-DD) — vide si le projet n'en a pas
     $("#p-due").value = project && project.due && project.due !== "À définir" ? project.due : "";
     $("#p-team").value = project ? project.team : 1;
@@ -325,12 +324,10 @@
         return;
       }
 
-      var progress = Math.max(0, Math.min(100, parseInt($("#p-progress").value, 10) || 0));
       var payload = {
         name: name,
         category: catToApi($("#p-category").value),
         status: UI_TO_API[$("#p-status").value] || "preparation",
-        progress: progress,
         due_date: $("#p-due").value.trim() || null
       };
       var saveBtn = $("#project-save");

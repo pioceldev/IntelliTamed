@@ -14,12 +14,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "target_audience", "objectives", "business_model", "category",
             "status", "progress", "due_date", "created_at", "updated_at",
         )
-        read_only_fields = ("owner", "created_at", "updated_at")
-
-    def validate_progress(self, value):
-        if not 0 <= value <= 100:
-            raise serializers.ValidationError("La progression doit être entre 0 et 100.")
-        return value
+        read_only_fields = ("owner", "progress", "created_at", "updated_at")
 
 
 class ProjectAnalysisSerializer(serializers.ModelSerializer):

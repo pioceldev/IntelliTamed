@@ -40,6 +40,60 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    def compute_progress(self):
+        """Progression AUTOMATIQUE, calculée depuis les actions de l'utilisateur :
+        - 30 % : champs du projet remplis (description, problème, solution,
+          public cible, modèle économique, catégorie)
+        -  5 % : objectifs définis
+        - 20 % : analyse IA générée
+        - 40 % : étapes du plan d'action terminées
+        -  5 % : avancement du statut (idée → préparation → … → croissance)
+        """
+        from apps.action_plans.models import ActionStep
+
+        score = 0.0
+
+        # 1) Fondations : champs remplis (0-30)
+        fields = [
+            "description", "problem", "solution",
+            "target_audience", "business_model", "category",
+        ]
+        filled = sum(1 for f in fields if (getattr(self, f) or "").strip())
+        score += (filled / len(fields)) * 30
+
+        # 2) Objectifs définis (+5)
+        if self.objectives:
+            score += 5
+
+        # 3) Analyse IA générée (+20) — uniquement si le projet est enregistré
+        if self.pk is not None and self.analyses.exists():
+            score += 20
+
+        # 4) Plan d'action : étapes terminées (0-40)
+        if self.pk is not None:
+            plan = self.action_plans.order_by("-updated_at").first()
+            if plan:
+                steps = list(plan.steps.all())
+                if steps:
+                    done = sum(1 for s in steps if s.status == ActionStep.Status.DONE)
+                    score += (done / len(steps)) * 40
+                else:
+                    score += 5  # plan créé mais pas encore d'étapes
+
+        # 5) Statut avancé (+0-5)
+        status_bonus = {
+            "idea": 0, "preparation": 1, "development": 2,
+            "launched": 4, "growth": 5,
+        }
+        score += status_bonus.get(self.status, 0)
+
+        return round(max(0, min(100, score)))
+
+    def save(self, *args, **kwargs):
+        # La progression est toujours recalculée automatiquement
+        self.progress = self.compute_progress()
+        super().save(*args, **kwargs)
+
 
 class ProjectAnalysis(models.Model):
     """Analyse structurée d'un projet, générée par Gemini."""
